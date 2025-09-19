@@ -6,7 +6,7 @@ import { CategoryControlleer } from '../controllers/category.controller';
 import { ProductController } from '../controllers/product.controller';
 import { ServiceController } from '../controllers/service.controller';
 import { VisitController } from '../controllers/visit.controller';
-import { OrderController } from '../controllers/orderController';
+import { OrderController } from '../controllers/order.Controller';
 import { PaymentController } from '../controllers/payment.controller';
 import { SaleController } from '../controllers/sales.controller';
 
