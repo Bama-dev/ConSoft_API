@@ -35,7 +35,7 @@ const OrderSchema = new Schema(
     detalles: { type: String },
     valor: { type: Number }
   }
-]
+],
     payments: { type: [PaymentSchema], default: [] },
     attachments: { type: [AttachmentSchema], default: [] },
   },
