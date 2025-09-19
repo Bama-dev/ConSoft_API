@@ -24,7 +24,6 @@ const AttachmentSchema = new Schema(
 
 const OrderSchema = new Schema(
   {
-    visit: { type: Types.ObjectId, ref: 'Visit', unique: true },
     type: { type: String, required: true, trim: true },
     status: { type: String, required: true, trim: true },
     address: { type: String, trim: true },
