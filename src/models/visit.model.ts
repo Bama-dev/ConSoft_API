@@ -13,12 +13,12 @@ const VisitServiceSchema = new Schema(
 const VisitSchema = new Schema(
 	{
 		user: { type: Types.ObjectId, ref: 'User', required: true },
-		scheduledAt: { type: Date, required: true },
+		visitDate: { type: Date, required: true },
 		address: { type: String, required: true, trim: true },
 		status: { type: String, required: true, trim: true },
 		services: { type: [VisitServiceSchema], default: [] },
 	},
-	{ timestamps: true, collection: 'visitas' }
+	{ collection: 'visitas' }
 );
 
 export const VisitModel = model('Visit', VisitSchema);

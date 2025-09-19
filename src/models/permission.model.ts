@@ -2,10 +2,10 @@ import { Schema, model, Types, InferSchemaType } from 'mongoose';
 
 const PermissionSchema = new Schema(
   {
-    name: { type: String, required: true, trim: true },
-    description: { type: String, trim: true },
+    module: { type: String, required: true, trim: true },
+    action: { type: String, trim: true },
   },
-  { timestamps: true, collection: 'permisos' }
+  {  collection: 'permisos' }
 );
 
 export type Permission = InferSchemaType<typeof PermissionSchema> & { _id: Types.ObjectId };

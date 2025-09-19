@@ -21,7 +21,7 @@ create('roles', {
   properties: {
     name: { bsonType: 'string' },
     description: { bsonType: ['string', 'null'] },
-    active: { bsonType: 'bool' },
+    status: { bsonType: 'bool' },
     permissions: { bsonType: 'array', items: { bsonType: 'objectId' } },
   },
 });
@@ -46,7 +46,7 @@ create('usuarios', {
     address: { bsonType: ['string', 'null'] },
     phone: { bsonType: ['string', 'null'] },
     role: { bsonType: 'objectId' },
-    active: { bsonType: 'bool' },
+    status: { bsonType: 'bool' },
     registeredAt: { bsonType: 'date' },
     favorites: { bsonType: 'array', items: { bsonType: 'objectId' } },
   },
@@ -78,7 +78,7 @@ create('servicios', {
     name: { bsonType: 'string' },
     description: { bsonType: ['string', 'null'] },
     imageUrl: { bsonType: ['string', 'null'] },
-    active: { bsonType: 'bool' },
+    status: { bsonType: 'bool' },
   },
 });
 

@@ -1,7 +1,7 @@
 # 📘 README – ConSoft
 
 ## 🪑 Contexto  
-**Confort & Estilo** es una empresa familiar ubicada en Medellín dedicada al diseño, fabricación y reparación de muebles, tapizado (incluido automotriz) y decoración de interiores.  
+**Confort & Estilo** es una empresa familiar ubicada en Medellín dedicada al diseño, fabricación y reparación de muebles, tapizado y decoración de interiores.  
 El crecimiento de la empresa evidenció dificultades en la **gestión manual** de información, la **dependencia de asesores** para ventas y la **falta de automatización** de procesos clave como inventario, pedidos y pagos.
 
 ---
@@ -30,7 +30,7 @@ Desarrollar una aplicación web/móvil que gestione los procesos de **compras, s
 - Gestionar roles y permisos de acceso.  
 - Administrar clientes, empleados y usuarios.  
 - Digitalizar las ejemplos de productos para la fabricacion y servicios.  
-- Gestionar compras, ventas, pedidos y cotizaciones.  
+- Gestionar compras, ventas, pedidos.  
 - Automatizar pagos con integración de **QR** y plan separe.  
 - Facilitar el **agendamiento de servicios** (fabricación, reparación, tapizado, decoración).  
 - Generar reportes de desempeño (ventas, ingresos, usuarios).  
@@ -45,18 +45,16 @@ Desarrollar una aplicación web/móvil que gestione los procesos de **compras, s
 
 ### 2. Compras
 - Categorías de productos de ejemplo.  
-- Gestión de productos (crear, editar, eliminar, listar).  
- 
+- Gestión de productos
 
 ### 3. Servicios
 - Registro y actualización de servicios (fabricación, reparación, tapizado, decoración).  
-- **Agendamiento de servicios (pedidos):** los clientes pueden solicitar servicios específicos, subir imágenes o notas de referencia y hacer seguimiento a su ejecución.  
+- **Agendamiento de servicios (pedidos):** los clientes pueden solicitar servicios específicos y hacer seguimiento a su ejecución.  
 - **Agendamiento de visitas:** permite programar visitas del equipo de la empresa al lugar del cliente para evaluar o prestar un servicio.   
 
 ### 4. Ventas
 - Gestión de clientes.  
-- Listado de productos de ejemplo y servicios.  
-- Cotizaciones y pedidos que se mueve todo por el mismo documento, solo que cuando va cambiando de estado se le añaden datos a ese documento.  
+- Listado de productos de ejemplo y servicios.   
 - Pagos (QR y plan separe).  
 
 
@@ -69,9 +67,8 @@ Desarrollar una aplicación web/móvil que gestione los procesos de **compras, s
 
 ## 📌 Diferenciadores frente a plataformas similares
 - Enfoque **personalizado al modelo de negocio** de Confort & Estilo.  
-- Gestión interna optimizada con comunicación centralizada.  
-- Encuestas automáticas enviadas al correo del cliente después de cada compra.  
-- Catálogo híbrido: **modelos predeterminados** + opción de **personalización** (cliente puede subir fotos de referencia).  
+- Gestión interna optimizada con comunicación centralizada.    
+- Catálogo híbrido: **modelos predeterminados** 
 
 
 ## 🗄️ Scripts de base de datos (MongoDB)

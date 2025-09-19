@@ -25,8 +25,8 @@ const permNames = [
 const permIds = permNames.map((p) => upsertByName('permisos', { name: p, description: '' }));
 
 // Roles
-const adminRoleId = upsertByName('roles', { name: 'Administrador', description: 'Acceso total', active: true, permissions: permIds });
-const userRoleId = upsertByName('roles', { name: 'Cliente', description: 'Acceso básico', active: true, permissions: [] });
+const adminRoleId = upsertByName('roles', { name: 'Administrador', description: 'Acceso total', status: true, permissions: permIds });
+const userRoleId = upsertByName('roles', { name: 'Cliente', description: 'Acceso básico', status: true, permissions: [] });
 
 // Units
 const unitIds = ['Unidad', 'Metro', 'Litro'].map((n) => upsertByName('unidades_medida', { name: n }));
@@ -48,10 +48,10 @@ const materialPlasticoId = upsertByName('materiales', { name: 'Plástico', categ
 const materialVidrioId = upsertByName('materiales', { name: 'Vidrio', category: categoryMuebleId });
 
 // Services
-const serviceTapizadoId = upsertByName('servicios', { name: 'Tapizado', description: 'Tapizado de muebles y hogar', imageUrl: '', active: true });
-const serviceReparacionId = upsertByName('servicios', { name: 'Reparación', description: 'Reparación de muebles', imageUrl: '', active: true });
-const serviceFrabricacionId = upsertByName('servicios', { name: 'Fabricación', description: 'Fabricación de muebles', imageUrl: '', active: true });
-const serviceMantenimientoId = upsertByName('servicios', { name: 'Mantenimiento', description: 'Mantenimiento de muebles', imageUrl: '', active: true });
+const serviceTapizadoId = upsertByName('servicios', { name: 'Tapizado', description: 'Tapizado de muebles y hogar', imageUrl: '', status: true });
+const serviceReparacionId = upsertByName('servicios', { name: 'Reparación', description: 'Reparación de muebles', imageUrl: '', status: true });
+const serviceFrabricacionId = upsertByName('servicios', { name: 'Fabricación', description: 'Fabricación de muebles', imageUrl: '', status: true });
+const serviceMantenimientoId = upsertByName('servicios', { name: 'Mantenimiento', description: 'Mantenimiento de muebles', imageUrl: '', status: true });
 
 // Products
 function upsertProduct(name, description, category) {
@@ -68,7 +68,7 @@ const productCamasId = upsertProduct('Cama queen', 'Cama de madera', categoryCam
 function upsertUser(email, name, role) {
   const existing = db.usuarios.findOne({ email });
   if (existing) return existing._id;
-  return db.usuarios.insertOne({ name, email, password: 'hashed_password', role, active: true, registeredAt: new Date(), favorites: [] }).insertedId;
+  return db.usuarios.insertOne({ name, email, password: 'hashed_password', role, status: true, registeredAt: new Date(), favorites: [] }).insertedId;
 }
 const userAdminId = upsertUser('admin@consoft.test', 'Admin', adminRoleId);
 const userClientId = upsertUser('cliente@consoft.test', 'Cliente', userRoleId);

@@ -9,7 +9,7 @@ export interface IUser extends Document {
 	address?: string;
 	phone?: string;
 	role: Types.ObjectId;
-	active: boolean;
+	status: boolean;
 	registeredAt: Date;
 	favorites: Types.ObjectId[];
 }

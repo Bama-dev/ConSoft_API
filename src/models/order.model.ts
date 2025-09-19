@@ -34,7 +34,7 @@ const OrderSchema = new Schema(
     payments: { type: [PaymentSchema], default: [] },
     attachments: { type: [AttachmentSchema], default: [] },
   },
-  { timestamps: true, collection: 'pedidos' }
+  { collection: 'pedidos' }
 );
 
 

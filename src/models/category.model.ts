@@ -5,7 +5,7 @@ const CategorySchema = new Schema(
 		name: { type: String, required: true, trim: true },
 		description: { type: String, trim: true },
 	},
-	{ timestamps: true, collection: 'categorias' }
+	{ collection: 'categorias' }
 );
 
 //Virtual populate

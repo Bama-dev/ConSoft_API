@@ -11,7 +11,7 @@ Este documento mapea el esquema SQL proporcionado al modelo MongoDB, siguiendo e
 - roles → colección `roles`
   - nombre → `name: string` (req)
   - descripcion → `description: string`
-  - estado → `active: boolean` (default true)
+  - estado → `status: boolean` (default true)
   - N:M permisos → `permissions: ObjectId[]` (ref `permisos`)
 
 - permisos → colección `permisos`
@@ -26,7 +26,7 @@ Este documento mapea el esquema SQL proporcionado al modelo MongoDB, siguiendo e
   - direccion → `address: string`
   - telefono → `phone: string`
   - rol → `role: ObjectId` (ref `roles`, req)
-  - estado → `active: boolean` (default true)
+  - estado → `status: boolean` (default true)
   - fecha_registro → `registeredAt: date` (default now)
   - destacados → `favorites: ObjectId[]` (ref `productos`)
 
@@ -43,7 +43,7 @@ Este documento mapea el esquema SQL proporcionado al modelo MongoDB, siguiendo e
   - nombre → `name: string` (req)
   - descripcion → `description: string`
   - url_imagen → `imageUrl: string` (req)
-  - estado → `active: boolean` (default true)
+  - estado → `status: boolean` (default true)
 
 - materiales → colección `materiales`
   - nombre → `name: string` (req)
