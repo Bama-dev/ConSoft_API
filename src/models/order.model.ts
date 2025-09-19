@@ -29,7 +29,13 @@ const OrderSchema = new Schema(
     address: { type: String, trim: true },
     startedAt: { type: Date },
     deliveredAt: { type: Date },
-    notes: { type: String, trim: true },
+    items: [
+  {
+    id_servicio: { type: Types.ObjectId, ref: 'Service' },
+    detalles: { type: String },
+    valor: { type: Number }
+  }
+]
     payments: { type: [PaymentSchema], default: [] },
     attachments: { type: [AttachmentSchema], default: [] },
   },
