@@ -6,7 +6,10 @@ import cookieParser = require('cookie-parser');
 export function createApp() {
 	const app = express();
 	app.use(express.json());
-	app.use(cors());
+	app.use(cors({
+		origin: "http//:localhost:3000",
+		credentials: true
+	}));
 	app.use(cookieParser());
 
 	app.get('/health', (_req, res) => {
