@@ -7,6 +7,15 @@ const base = createCrudController(RoleModel);
 export const RoleController = {
 	...base,
 
+	list: async (req: Request, res: Response) => {
+		try {
+			const roles = RoleModel.find()
+		} catch (error) {
+			console.error(error)
+			return res.status(500).json({error: "Internal server error"})
+		}
+	},
+
 	create: async (req: Request, res: Response) => {
 		try {
 			const { name, description, permissions } = req.body;
