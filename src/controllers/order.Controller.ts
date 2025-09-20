@@ -26,7 +26,7 @@ export const OrderController = {
 				};
 			});
 
-			res.json(orders);
+			res.json(result);
 		} catch (error) {
 			res.status(500).json({ message: 'Error retrieving orders' });
 		}
