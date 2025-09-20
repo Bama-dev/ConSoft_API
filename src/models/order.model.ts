@@ -7,7 +7,6 @@ const PaymentSchema = new Schema(
     method: { type: String, required: true, trim: true },
     status: { type: String, required: true, trim: true },
   },
-  { _id: false }
 );
 
 const AttachmentSchema = new Schema(
@@ -40,12 +39,11 @@ const OrderSchema = new Schema(
     payments: { type: [PaymentSchema], default: [] },
     attachments: { type: [AttachmentSchema], default: [] },
   },
-  { collection: 'pedidos' }
 );
 
 
 
-export const OrderModel = model('Order', OrderSchema);
+export const OrderModel = model('Pedido', OrderSchema);
 
 
 

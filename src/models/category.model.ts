@@ -5,7 +5,6 @@ const CategorySchema = new Schema(
 		name: { type: String, required: true, trim: true },
 		description: { type: String, trim: true },
 	},
-	{ collection: 'categorias' }
 );
 
 //Virtual populate
@@ -17,4 +16,4 @@ CategorySchema.virtual('products', {
 
 CategorySchema.set('toJSON', { virtuals: true });
 
-export const CategoryModel = model('Category', CategorySchema);
+export const CategoryModel = model('Categoria', CategorySchema);

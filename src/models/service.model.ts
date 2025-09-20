@@ -7,7 +7,6 @@ const ServiceSchema = new Schema(
 		imageUrl: { type: String, trim: true },
 		status: { type: Boolean, default: true },
 	},
-	{ collection: 'servicios' }
 );
 
-export const ServiceModel = model('Service', ServiceSchema);
+export const ServiceModel = model('Servicio', ServiceSchema);
