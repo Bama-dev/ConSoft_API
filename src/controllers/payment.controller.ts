@@ -14,23 +14,30 @@ export const PaymentController = {
 				// total de los items
 				const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
 
-				// total pagado hasta ahora
-				const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+				// pagado acumulado
+				let acumulado = 0;
 
-				// valor restante
-				const restante = total - paid;
+				// transformar cada pago agregando su restante en ese momento
+				const pagosConRestante = order.payments.map((p) => {
+					acumulado += p.amount || 0;
+					return {
+						...p.toObject(), // asegúrate de que sea un objeto plano
+						restante: total - acumulado,
+					};
+				});
 
 				return {
 					_id: order._id,
 					total,
-					paid,
-					restante,
-					payments: order.payments,
+					paid: acumulado,
+					restante: total - acumulado,
+					payments: pagosConRestante,
 				};
 			});
 
 			res.status(200).json({ ok: true, payments });
 		} catch (error) {
+			console.error(error);
 			res.status(500).json({ message: 'Internal server error' });
 		}
 	},
