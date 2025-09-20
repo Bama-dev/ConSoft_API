@@ -9,6 +9,12 @@ const RoleSchema = new Schema(
   },
 );
 
+RoleSchema.virtual("usersCount", {
+  ref: "users",
+  localField: "_id",
+  foreignField: "role"
+})
+
 
 export const RoleModel = model('Role', RoleSchema);
 
