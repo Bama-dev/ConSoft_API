@@ -9,10 +9,11 @@ export const RoleController = {
 
 	list: async (req: Request, res: Response) => {
 		try {
-			const roles = RoleModel.find()
+			const roles = await RoleModel.find().populate('usersCount');
+			return res.status(200).json({ ok: true, roles });
 		} catch (error) {
-			console.error(error)
-			return res.status(500).json({error: "Internal server error"})
+			console.error(error);
+			return res.status(500).json({ error: 'Internal server error' });
 		}
 	},
 
@@ -34,5 +35,4 @@ export const RoleController = {
 			return res.status(500).json({ error: 'Internal server error' });
 		}
 	},
-
 };
