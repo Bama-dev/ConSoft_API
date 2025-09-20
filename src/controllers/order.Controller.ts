@@ -22,9 +22,9 @@ export const OrderController = {
 					total,
 					paid,
 					restante,
-					paymentStatus: restante < 0 ? 'Pagado' : 'Pendiente',
+					paymentStatus: restante <= 0 ? 'Pagado' : 'Pendiente',
 				};
-			});
+			}).filter((order)=> order.paymentStatus != "Pagado")
 
 			res.json(result);
 		} catch (error) {
