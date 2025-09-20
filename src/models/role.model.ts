@@ -5,7 +5,7 @@ const RoleSchema = new Schema(
     name: { type: String, required: true, trim: true },
     description: { type: String, trim: true },
     status: { type: Boolean, default: true },
-    permissions: [{ type: Types.ObjectId, ref: 'Permission' }],
+    permissions: [{ type: Types.ObjectId, ref: 'Permiso' }],
   },
 );
 

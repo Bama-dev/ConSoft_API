@@ -5,9 +5,9 @@ const ProductSchema = new Schema(
 		name: { type: String, required: true, trim: true },
 		description: { type: String, trim: true },
 		category: { type: Types.ObjectId, ref: 'Category', required: true },
-		imageUrl : {type: String}
+		status: { type: Boolean },
+		imageUrl: { type: String },
 	},
-	{  collection: 'productos' }
 );
 
-export const ProductModel = model('Product', ProductSchema);
+export const ProductModel = model('Producto', ProductSchema);

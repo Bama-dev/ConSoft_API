@@ -31,7 +31,7 @@ mountCrud('product', ProductController);
 mountCrud('services', ServiceController);
 mountCrud('visits', VisitController);
 mountCrud('orders', OrderController);
-mountCrud('paymets', PaymentController);
+mountCrud('payments', PaymentController);
 mountCrud('sales', SaleController);
 
 export default router;
