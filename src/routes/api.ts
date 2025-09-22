@@ -9,6 +9,7 @@ import { VisitController } from '../controllers/visit.controller';
 import { OrderController } from '../controllers/order.Controller';
 import { PaymentController } from '../controllers/payment.controller';
 import { SaleController } from '../controllers/sales.controller';
+import { PermissionController } from '../controllers/permission.controller';
 
 const router = Router();
 
@@ -33,5 +34,6 @@ mountCrud('visits', VisitController);
 mountCrud('orders', OrderController);
 mountCrud('payments', PaymentController);
 mountCrud('sales', SaleController);
+mountCrud("permissions", PermissionController)
 
 export default router;
