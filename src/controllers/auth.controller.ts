@@ -30,8 +30,8 @@ export const AuthController = {
 
 			res.cookie('token', token, {
 				httpOnly: true,
-				secure: env.nodeEnv === 'production',
-				sameSite: 'strict',
+				secure: false,
+				sameSite: 'none',
 				maxAge: 1000 * 60 * 60 * 2,
 			});
 
