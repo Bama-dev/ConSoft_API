@@ -13,7 +13,7 @@ export const PermissionController = {
 					$group: {
 						_id: '$module',
 						permissions: {
-							$push: { id: '$_id', module: '$module', action: '$action' },
+							$push: { _id: '$_id', module: '$module', action: '$action' },
 						},
 					},
 				},
