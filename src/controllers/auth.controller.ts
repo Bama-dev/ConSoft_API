@@ -41,34 +41,6 @@ export const AuthController = {
 		}
 	},
 
-	register: async (req: Request, res: Response) => {
-		try {
-			const { name, email, password, role = 'common' } = req.body;
-
-			const existing = await UserModel.findOne({ email });
-
-			if (existing) {
-				return res.status(400).json({ message: 'This email is already in use' });
-			}
-
-			const hashedPass = await hash(password, 10);
-
-			const userData = {
-				name,
-				email,
-				password: hashedPass,
-				role,
-			};
-
-			const newUser = await UserModel.create(userData);
-
-			res.json({ message: 'User registered successfully' });
-		} catch (err) {
-			console.log(err);
-			res.status(500).json({ error: 'Error during register' });
-		}
-	},
-
 	logout: async (req: Request, res: Response) => {
 		try {
 			res.clearCookie('token', {
