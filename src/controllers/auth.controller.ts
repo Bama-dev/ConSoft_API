@@ -9,7 +9,7 @@ export const AuthController = {
 	login: async (req: Request, res: Response) => {
 		try {
 			const { email, password } = req.body;
-			const user = await UserModel.findOne({ email });
+			const user = await UserModel.findOne({ email }).populate('role', 'name');
 
 			if (!user) {
 				return res.status(404).json({ message: 'User not found' });
@@ -24,7 +24,10 @@ export const AuthController = {
 			const payload = {
 				id: user._id,
 				email: user.email,
-				role: user.role,
+				role: {
+					id: (user.role as any)._id,
+					name: (user.role as any).name,
+				},
 			};
 
 			const token = generateToken(payload);
@@ -60,10 +63,6 @@ export const AuthController = {
 			return res.status(401).json({ message: 'Unauthorized' });
 		}
 
-		res.status(200).json({
-			id: req.user.id,
-			email: req.user.email,
-			role: req.user.role.name,
-		});
+		res.status(200).json(req.user);
 	},
 };
