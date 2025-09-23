@@ -9,7 +9,7 @@ export const RoleController = {
 
 	list: async (req: Request, res: Response) => {
 		try {
-			const roles = await RoleModel.find().populate('usersCount');
+			const roles = await RoleModel.find().populate('usersCount').populate("permissions");
 			return res.status(200).json({ ok: true, roles });
 		} catch (error) {
 			console.error(error);
