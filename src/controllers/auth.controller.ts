@@ -3,6 +3,7 @@ import { UserModel } from '../models/user.model';
 import { compare, hash } from 'bcrypt';
 import { generateToken } from '../utils/jwt';
 import { env } from '../config/env';
+import { AuthRequest } from '../middlewares/auth.middleware';
 
 export const AuthController = {
 	login: async (req: Request, res: Response) => {
@@ -35,37 +36,9 @@ export const AuthController = {
 				maxAge: 1000 * 60 * 60 * 2,
 			});
 
-			res.json({ message: 'Login successful' });
+			res.status(200).json({ message: 'Login successful' });
 		} catch (err) {
 			res.status(500).json({ error: 'Error during login' });
-		}
-	},
-
-	register: async (req: Request, res: Response) => {
-		try {
-			const { name, email, password, role = 'common' } = req.body;
-
-			const existing = await UserModel.findOne({ email });
-
-			if (existing) {
-				return res.status(400).json({ message: 'This email is already in use' });
-			}
-
-			const hashedPass = await hash(password, 10);
-
-			const userData = {
-				name,
-				email,
-				password: hashedPass,
-				role,
-			};
-
-			const newUser = await UserModel.create(userData);
-
-			res.json({ message: 'User registered successfully' });
-		} catch (err) {
-			console.log(err);
-			res.status(500).json({ error: 'Error during register' });
 		}
 	},
 
@@ -80,5 +53,17 @@ export const AuthController = {
 		} catch (err) {
 			res.status(500).json({ error: 'Error during logout' });
 		}
+	},
+
+	me: (req: AuthRequest, res: Response) => {
+		if (!req.user) {
+			return res.status(401).json({ message: 'Unauthorized' });
+		}
+
+		res.status(200).json({
+			id: req.user.id,
+			email: req.user.email,
+			role: req.user.role.name,
+		});
 	},
 };
