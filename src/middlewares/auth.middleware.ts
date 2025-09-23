@@ -8,7 +8,11 @@ export interface AuthRequest extends Request {
 
 export function verifyToken(req: AuthRequest, res: Response, next: NextFunction) {
 	try {
-		const token = req.cookies?.token;
+		const authHeader = req.headers?.authorization as string | undefined;
+		const bearerToken = authHeader && authHeader.startsWith('Bearer ')
+			? authHeader.substring('Bearer '.length)
+			: undefined;
+		const token = bearerToken || req.cookies?.token;
 
 		if (!token) {
 			return res.status(401).json({ message: 'Acces denied. No token provided' });

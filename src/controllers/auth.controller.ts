@@ -8,7 +8,10 @@ import { AuthRequest } from '../middlewares/auth.middleware';
 export const AuthController = {
 	login: async (req: Request, res: Response) => {
 		try {
-			const { email, password } = req.body;
+			const { email, password } = req.body || {};
+			if (!email || !password) {
+				return res.status(400).json({ message: 'email and password are required' });
+			}
 			const user = await UserModel.findOne({ email }).populate('role', 'name');
 
 			if (!user) {
@@ -24,10 +27,9 @@ export const AuthController = {
 			const payload = {
 				id: user._id,
 				email: user.email,
-				role: {
-					id: (user.role as any)._id,
-					name: (user.role as any).name,
-				},
+				role: user.role
+					? { id: (user.role as any)._id, name: (user.role as any).name }
+					: undefined,
 			};
 
 			const token = generateToken(payload);
@@ -39,7 +41,7 @@ export const AuthController = {
 				maxAge: 1000 * 60 * 60 * 2,
 			});
 
-			res.status(200).json({ message: 'Login successful' });
+			res.status(200).json({ message: 'Login successful', accessToken: token });
 		} catch (err) {
 			res.status(500).json({ error: 'Error during login' });
 		}
