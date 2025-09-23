@@ -33,12 +33,10 @@ export const AuthController = {
 
       res.cookie("token", token, {
         httpOnly: true,
-        secure: env.nodeEnv === "production", // true en prod, false en dev
-        sameSite: env.nodeEnv === "production" ? "none" : "lax", // none en prod para cross-site, lax en dev para evitar problemas
-        domain:
-          env.nodeEnv === "production" ? "consoft-api.onrender.com" : undefined, // ajusta al dominio real en prod
-        path: "/",
-        maxAge: 1000 * 60 * 60 * 2, // 2 horas
+        secure: env.nodeEnv === "production",
+        sameSite: "strict",
+        maxAge: 1000 * 60 * 60 * 2,
+		expires: new Date(Date.now() + 1000 * 60 * 60 * 2)
       });
 
       res.status(200).json({ message: "Login successful" });
