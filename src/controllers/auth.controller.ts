@@ -31,8 +31,8 @@ export const AuthController = {
 
 			res.cookie('token', token, {
 				httpOnly: true,
-				secure: false,
-				sameSite: 'none',
+				secure: env.nodeEnv === 'production',
+				sameSite: env.nodeEnv === 'production' ? 'none' : 'lax',
 				maxAge: 1000 * 60 * 60 * 2,
 			});
 
