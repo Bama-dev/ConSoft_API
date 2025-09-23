@@ -23,7 +23,7 @@ function mountCrud(path: string, controller: any) {
 
 router.post("/auth/login", AuthController.login);
 router.post("/auth/logout", AuthController.logout);
-router.post("/auth/me", AuthController.me);
+router.get("/auth/me", AuthController.me);
 
 mountCrud("roles", RoleController);
 mountCrud("users", UserController);
