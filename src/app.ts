@@ -1,18 +1,13 @@
 import express from 'express';
 import api from './routes/api';
 import cors from 'cors';
-import { env } from './config/env';
 import cookieParser = require('cookie-parser');
 
 export function createApp() {
 	const app = express();
 	app.use(express.json());
 	app.use(cors({
-		origin: (origin, cb) => {
-			if (!origin) return cb(null, true);
-			if (env.frontendOrigins.includes(origin)) return cb(null, true);
-			return cb(new Error('Not allowed by CORS'));
-		},
+		origin: "http://localhost:3000",
 		credentials: true
 	}));
 	app.use(cookieParser());

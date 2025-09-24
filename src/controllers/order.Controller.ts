@@ -6,21 +6,6 @@ const base = createCrudController(OrderModel);
 
 export const OrderController = {
 	...base,
-
-	get: async (req: Request, res: Response) => {
-		try {
-			const order = await OrderModel.findById(req.params.id)
-				.populate('user', '-password -__v ')
-				.populate('payments');
-			if (!order) return res.status(404).json({ message: 'Not found' });
-			const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
-			const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-			const restante = total - paid;
-			return res.json({ ...order.toObject(), total, paid, restante });
-		} catch (error) {
-			return res.status(500).json({ message: 'Error retrieving order' });
-		}
-	},
 	list: async (req: Request, res: Response) => {
 		try {
 			const orders = await OrderModel.find()

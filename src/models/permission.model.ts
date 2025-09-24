@@ -7,8 +7,6 @@ const PermissionSchema = new Schema(
   },
 );
 
-PermissionSchema.index({ module: 1, action: 1 }, { unique: true });
-
 
 export const PermissionModel = model('Permiso', PermissionSchema);
 
