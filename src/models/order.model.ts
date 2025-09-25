@@ -24,14 +24,13 @@ const AttachmentSchema = new Schema(
 const OrderSchema = new Schema(
   {
     user: { type: Types.ObjectId, ref: 'User', required: true },
-    type: { type: String, required: true, trim: true },
     status: { type: String, required: true, trim: true },
     address: { type: String, trim: true },
     startedAt: { type: Date },
     deliveredAt: { type: Date },
     items: [
   {
-    id_servicio: { type: Types.ObjectId, ref: 'Service' },
+    id_servicio: { type: Types.ObjectId, ref: 'Servicio' },
     detalles: { type: String },
     valor: { type: Number }
   }
