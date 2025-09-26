@@ -25,6 +25,7 @@ function mountCrud(path: string, controller: any) {
 router.post('/auth/login', AuthController.login);
 router.post('/auth/logout', AuthController.logout);
 router.get('/auth/me', verifyToken, AuthController.me);
+router.post('/auth/google', AuthController.google);
 
 mountCrud('roles', RoleController);
 mountCrud('users', UserController);

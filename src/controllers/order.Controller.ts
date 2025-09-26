@@ -34,7 +34,21 @@ export const OrderController = {
 					const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
 					const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
 					const restante = total - paid;
+			const result = orders
+				.map((order) => {
+					const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
+					const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+					const restante = total - paid;
 
+					return {
+						...order.toObject(),
+						total,
+						paid,
+						restante,
+						paymentStatus: restante <= 0 ? 'Pagado' : 'Pendiente',
+					};
+				})
+				.filter((order) => order.paymentStatus != 'Pagado');
 					return {
 						...order.toObject(),
 						total,

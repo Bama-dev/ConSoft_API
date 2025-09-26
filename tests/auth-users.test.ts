@@ -1,7 +1,6 @@
 import request from 'supertest';
 import { createApp } from '../src/app';
 import { setupInMemoryMongo, teardownInMemoryMongo } from './setup-db';
-import mongoose from 'mongoose';
 
 describe('Auth & Users', () => {
   const app = createApp();
@@ -14,21 +13,22 @@ describe('Auth & Users', () => {
     await teardownInMemoryMongo();
   });
 
-  it('registers a user and logs in with access token', async () => {
+  it('registers a user and uses cookie auth for /me', async () => {
     const register = await request(app)
       .post('/api/users')
       .send({ name: 'Admin', email: 'admin@test.com', password: 'secret123' });
-    expect(register.status).toBe(201);
+    expect(register.status).toBe(200);
 
     const login = await request(app)
       .post('/api/auth/login')
       .send({ email: 'admin@test.com', password: 'secret123' });
     expect(login.status).toBe(200);
-    expect(login.body.accessToken).toBeDefined();
+    const cookies = login.headers['set-cookie'];
+    expect(cookies).toBeDefined();
 
     const me = await request(app)
       .get('/api/auth/me')
-      .set('Authorization', `Bearer ${login.body.accessToken}`);
+      .set('Cookie', cookies);
     expect(me.status).toBe(200);
     expect(me.body.email).toBe('admin@test.com');
   });

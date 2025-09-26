@@ -1,4 +1,3 @@
-import { Request, Response } from 'express';
 import { VisitModel } from '../models/visit.model';
 import { createCrudController } from './crud.controller';
 
