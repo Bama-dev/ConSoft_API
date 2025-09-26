@@ -13,6 +13,8 @@ export const OrderController = {
 				.populate('user', '-password -__v ')
 				.populate('payments')
 				.populate('items.id_servicio');
+				.populate('payments')
+				.populate('items.id_servicio');
 			if (!order) return res.status(404).json({ message: 'Not found' });
 			const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
 			const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
@@ -26,6 +28,8 @@ export const OrderController = {
 		try {
 			const orders = await OrderModel.find()
 				.populate('user', '-password -__v ')
+				.populate('payments')
+				.populate('items.id_servicio');
 				.populate('payments')
 				.populate('items.id_servicio');
 
