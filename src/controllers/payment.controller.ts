@@ -14,15 +14,19 @@ export const PaymentController = {
 				// total de los items
 				const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
 
-				// pagado acumulado
+				// pagado acumulado solo de pagos aprobados
 				let acumulado = 0;
 
 				// transformar cada pago agregando su restante en ese momento
 				const pagosConRestante = order.payments.map((p) => {
-					acumulado += p.amount || 0;
+					// solo sumamos si el pago está aprobado
+					if (p.status === 'aprobado') {
+						acumulado += p.amount || 0;
+					}
+
 					return {
-						...p.toObject(), // asegúrate de que sea un objeto plano
-						restante: total - acumulado,
+						...p.toObject(), // asegurarse que sea objeto plano
+						restante: total - acumulado, // pendiente hasta ese pago
 					};
 				});
 
@@ -75,7 +79,9 @@ export const PaymentController = {
 		try {
 			const { orderId, amount, paidAt, method, status } = req.body;
 			if (!orderId || amount == null || !paidAt || !method || !status) {
-				return res.status(400).json({ message: 'orderId, amount, paidAt, method, status are required' });
+				return res
+					.status(400)
+					.json({ message: 'orderId, amount, paidAt, method, status are required' });
 			}
 
 			const order = await OrderModel.findById(orderId);

@@ -31,7 +31,7 @@ const OrderSchema = new Schema(
     deliveredAt: { type: Date },
     items: [
   {
-    id_servicio: { type: Types.ObjectId, ref: 'Service' },
+    id_servicio: { type: Types.ObjectId, ref: 'Servicio' },
     detalles: { type: String },
     valor: { type: Number }
   }

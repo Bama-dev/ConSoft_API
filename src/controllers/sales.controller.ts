@@ -16,7 +16,7 @@ export const SaleController = {
 				const restante = total - paid;
 
 				return {
-					_id: order._id,
+					order,
 					total,
 					paid,
 					restante,

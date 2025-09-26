@@ -11,7 +11,8 @@ export const OrderController = {
 		try {
 			const order = await OrderModel.findById(req.params.id)
 				.populate('user', '-password -__v ')
-				.populate('payments');
+				.populate('payments')
+				.populate('items.id_servicio');
 			if (!order) return res.status(404).json({ message: 'Not found' });
 			const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
 			const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
@@ -25,21 +26,24 @@ export const OrderController = {
 		try {
 			const orders = await OrderModel.find()
 				.populate('user', '-password -__v ')
-				.populate('payments');
+				.populate('payments')
+				.populate('items.id_servicio');
 
-			const result = orders.map((order) => {
-				const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
-				const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-				const restante = total - paid;
+			const result = orders
+				.map((order) => {
+					const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
+					const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+					const restante = total - paid;
 
-				return {
-					...order.toObject(),
-					total,
-					paid,
-					restante,
-					paymentStatus: restante <= 0 ? 'Pagado' : 'Pendiente',
-				};
-			}).filter((order)=> order.paymentStatus != "Pagado")
+					return {
+						...order.toObject(),
+						total,
+						paid,
+						restante,
+						paymentStatus: restante <= 0 ? 'Pagado' : 'Pendiente',
+					};
+				})
+				.filter((order) => order.paymentStatus != 'Pagado');
 
 			res.json(result);
 		} catch (error) {

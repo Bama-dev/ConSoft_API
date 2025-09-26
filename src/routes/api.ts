@@ -29,7 +29,7 @@ router.get('/auth/me', verifyToken, AuthController.me);
 mountCrud('roles', RoleController);
 mountCrud('users', UserController);
 mountCrud('categories', CategoryControlleer);
-mountCrud('product', ProductController);
+mountCrud('products', ProductController);
 mountCrud('services', ServiceController);
 mountCrud('visits', VisitController);
 mountCrud('orders', OrderController);

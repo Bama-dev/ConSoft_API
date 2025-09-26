@@ -9,7 +9,7 @@ const CategorySchema = new Schema(
 
 //Virtual populate
 CategorySchema.virtual('products', {
-	ref: 'products',
+	ref: 'Producto',
 	localField: '_id',
 	foreignField: 'category',
 });

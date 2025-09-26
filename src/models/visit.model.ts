@@ -11,7 +11,7 @@ const VisitSchema = new Schema(
 				{
 					type: Types.ObjectId,
 					required: true,
-					ref: 'servicios',
+					ref: 'Servicio',
 				},
 			],
 			default: [],
