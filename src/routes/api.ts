@@ -11,21 +11,28 @@ import { PaymentController } from '../controllers/payment.controller';
 import { SaleController } from '../controllers/sales.controller';
 import { PermissionController } from '../controllers/permission.controller';
 import { verifyToken } from '../middlewares/auth.middleware';
+import { verifyRole } from '../middlewares/verifyRole';
 
 const router = Router();
 
 function mountCrud(path: string, controller: any) {
-	if (controller.list) router.get(`/${path}`, controller.list);
-	if (controller.get) router.get(`/${path}/:id`, controller.get);
-	if (controller.create) router.post(`/${path}`, controller.create);
-	if (controller.update) router.put(`/${path}/:id`, controller.update);
-	if (controller.remove) router.delete(`/${path}/:id`, controller.remove);
+	if (controller.list) router.get(`/${path}`, verifyRole(path, 'view'), controller.list);
+	if (controller.get) router.get(`/${path}/:id`, verifyRole(path, 'view'), controller.get);
+	if (controller.create) router.post(`/${path}`, verifyRole(path, 'create'), controller.create);
+	if (controller.update)
+		router.put(`/${path}/:id`, verifyRole(path, 'update'), controller.update);
+	if (controller.remove)
+		router.delete(`/${path}/:id`, verifyRole(path, 'delete'), controller.remove);
 }
 
+// === RUTAS PUBLICAS === //
 router.post('/auth/login', AuthController.login);
 router.post('/auth/logout', AuthController.logout);
 router.get('/auth/me', verifyToken, AuthController.me);
 router.post('/auth/google', AuthController.google);
+
+// === RUTAS PROTEGIDAS === //
+router.use(verifyToken);
 
 mountCrud('roles', RoleController);
 mountCrud('users', UserController);

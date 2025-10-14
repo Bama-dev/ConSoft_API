@@ -6,12 +6,19 @@ import { env } from '../config/env';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { OAuth2Client } from 'google-auth-library';
 import crypto from 'crypto';
+import path from 'path';
 
 export const AuthController = {
 	login: async (req: Request, res: Response) => {
 		try {
 			const { email, password } = req.body;
-			const user = await UserModel.findOne({ email }).populate('role', 'name');
+			const user = await UserModel.findOne({ email }).populate({
+				path: "role",
+				populate: {
+					path: "permissions",
+					model: "Permiso"
+				}
+			});
 
 			if (!user) {
 				return res.status(404).json({ message: 'User not found' });
@@ -26,10 +33,8 @@ export const AuthController = {
 			const payload: any = {
 				id: user._id,
 				email: user.email,
+				role: user.role,
 			};
-			if (user.role) {
-				payload.role = { id: (user.role as any)._id, name: (user.role as any).name };
-			}
 
 			const token = generateToken(payload);
 
@@ -50,13 +55,16 @@ export const AuthController = {
 		try {
 			const { idToken } = req.body || {};
 			if (!idToken) return res.status(400).json({ message: 'idToken is required' });
-			if (!env.googleClientId) return res.status(500).json({ message: 'Google client not configured' });
+			if (!env.googleClientId)
+				return res.status(500).json({ message: 'Google client not configured' });
 
 			const client = new OAuth2Client(env.googleClientId);
 			const ticket = await client.verifyIdToken({ idToken, audience: env.googleClientId });
 			const payload = ticket.getPayload();
-			if (!payload || !payload.email) return res.status(400).json({ message: 'Invalid Google token' });
-			if (!payload.email_verified) return res.status(400).json({ message: 'Email not verified by Google' });
+			if (!payload || !payload.email)
+				return res.status(400).json({ message: 'Invalid Google token' });
+			if (!payload.email_verified)
+				return res.status(400).json({ message: 'Email not verified by Google' });
 
 			const email = payload.email.toLowerCase();
 			let user = await UserModel.findOne({ email });

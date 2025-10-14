@@ -1,3 +1,4 @@
+import { Request, Response } from 'express';
 import { VisitModel } from '../models/visit.model';
 import { createCrudController } from './crud.controller';
 
@@ -6,7 +7,7 @@ const base = createCrudController(VisitModel);
 export const VisitController = {
 	...base,
 
-	list: async (_req: Request, res: Response) => {
+	list: async (req: Request, res: Response) => {
 		const visits = await VisitModel.find()
 			.populate('user', 'name email') // ✔ user es un ObjectId
 			.populate('services', 'name description'); // ✔ services es un array de ObjectId
