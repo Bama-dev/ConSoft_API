@@ -17,4 +17,12 @@ exports.env = {
     frontendOrigins: (process.env.FRONTEND_ORIGINS ?? 'http://localhost:3000')
         .split(',')
         .map((s) => s.trim()),
+    // Email (SMTP) – opcional; si no está configurado, sendEmail hará no-op
+    mailSmtpHost: process.env.MAIL_SMTP_HOST,
+    mailSmtpPort: process.env.MAIL_SMTP_PORT ? Number(process.env.MAIL_SMTP_PORT) : undefined,
+    mailSmtpUser: process.env.MAIL_SMTP_USER,
+    mailSmtpPass: process.env.MAIL_SMTP_PASS,
+    mailFrom: process.env.MAIL_FROM ?? 'no-reply@consoft.local',
+    // Notificaciones
+    adminNotifyEmail: process.env.ADMIN_NOTIFY_EMAIL,
 };

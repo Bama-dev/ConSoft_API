@@ -14,7 +14,7 @@ exports.SaleController = {
             const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
             const restante = total - paid;
             return {
-                _id: order._id,
+                order,
                 total,
                 paid,
                 restante,

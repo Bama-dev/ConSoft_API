@@ -8,7 +8,7 @@ const CategorySchema = new mongoose_1.Schema({
 });
 //Virtual populate
 CategorySchema.virtual('products', {
-    ref: 'products',
+    ref: 'Producto',
     localField: '_id',
     foreignField: 'category',
 });

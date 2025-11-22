@@ -16,14 +16,13 @@ const AttachmentSchema = new mongoose_1.Schema({
 }, { _id: false });
 const OrderSchema = new mongoose_1.Schema({
     user: { type: mongoose_1.Types.ObjectId, ref: 'User', required: true },
-    type: { type: String, required: true, trim: true },
     status: { type: String, required: true, trim: true },
     address: { type: String, trim: true },
     startedAt: { type: Date },
     deliveredAt: { type: Date },
     items: [
         {
-            id_servicio: { type: mongoose_1.Types.ObjectId, ref: 'Service' },
+            id_servicio: { type: mongoose_1.Types.ObjectId, ref: 'Servicio' },
             detalles: { type: String },
             valor: { type: Number }
         }

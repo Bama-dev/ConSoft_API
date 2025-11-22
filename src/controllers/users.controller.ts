@@ -52,12 +52,13 @@ export const UserController = {
       if (!roleId) {
         return res.status(500).json({ error: "Default role not configured" });
       }
+      const roleIdResolved: string = roleId;
 
       const userData = {
         name,
         email,
         password: hashedPass,
-        role: roleId,
+        role: roleIdResolved,
       };
 
       const newUser = await UserModel.create(userData);
