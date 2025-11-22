@@ -16,11 +16,13 @@ export const PaymentController = {
 
 				// pagado acumulado solo de pagos aprobados
 				let acumulado = 0;
+				const APPROVED = new Set(['aprobado', 'confirmado']);
 
 				// transformar cada pago agregando su restante en ese momento
 				const pagosConRestante = order.payments.map((p) => {
 					// solo sumamos si el pago está aprobado
-					if (p.status === 'aprobado') {
+					const status = String(p.status || '').toLowerCase();
+					if (APPROVED.has(status)) {
 						acumulado += p.amount || 0;
 					}
 
