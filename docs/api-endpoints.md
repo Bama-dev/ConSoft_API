@@ -11,10 +11,14 @@ Notas generales
 - GET `/health` → { ok: true } (sin auth)
 
 ### Autenticación
-- POST `/api/auth/login` → body: { email, password } → set-cookie `token`
+- POST `/api/auth/login` → body: { email, password } → set-cookie `token` y devuelve `{ token }` para apps móviles
 - POST `/api/auth/logout` → clear-cookie `token`
 - GET `/api/auth/me` → requiere cookie `token` → devuelve claims del usuario
 - POST `/api/auth/google` → body: { idToken }
+
+Autenticación para móviles (React Native)
+- Puedes usar el token JWT en el header: `Authorization: Bearer <token>`
+- Socket.IO: enviar `auth: { token }` en el handshake (o dejar que lo lea de la cookie si navegas en Web)
 
 ### Roles (permiso: roles.view/create/update/delete)
 - GET `/api/roles` → lista roles
@@ -47,14 +51,14 @@ Notas generales
 ### Productos (permiso: products.view/create/update/delete)
 - GET `/api/products` → lista con `category`
 - GET `/api/products/:id`
-- POST `/api/products`
+- POST `/api/products` → requiere `name` y `category`
 - PUT `/api/products/:id`
 - DELETE `/api/products/:id`
 
 ### Servicios (permiso: services.view/create/update/delete)
 - GET `/api/services`
 - GET `/api/services/:id`
-- POST `/api/services`
+- POST `/api/services` → requiere `name`
 - PUT `/api/services/:id`
 - DELETE `/api/services/:id`
 
@@ -86,14 +90,14 @@ Notas generales
 Autenticado por cookie. Permisos finos para admin en listAll/quote.
 
 Flujo 1: Cotizar un solo producto (desde su ficha)
-- POST `/api/quotations/quick` → { productId, quantity?, color?, size?, notes? } → crea cotización `solicitada`
+- POST `/api/quotations/quick` → { productId, quantity?, color?, size?, notes? } → crea cotización `solicitada` (valida quantity > 0)
 - POST `/api/quotations/:id/quote` (permiso quotations.update) → { totalEstimate, adminNotes? } → estado `cotizada` + email al cliente
 - POST `/api/quotations/:id/decision` → { decision: 'accept' | 'reject' } → `en_proceso` | `cerrada` + email al admin
 
 Flujo 2: Carrito de cotización (varios productos)
 - POST `/api/quotations/cart` → crea/obtiene `carrito`
-- POST `/api/quotations/:id/items` → agrega ítem { productId, quantity?, color?, size?, notes? }
-- PUT `/api/quotations/:id/items/:itemId` → edita ítem
+- POST `/api/quotations/:id/items` → agrega ítem { productId, quantity?, color?, size?, notes? } (valida quantity > 0)
+- PUT `/api/quotations/:id/items/:itemId` → edita ítem (valida quantity > 0)
 - DELETE `/api/quotations/:id/items/:itemId` → elimina ítem
 - POST `/api/quotations/:id/submit` → cambia a `solicitada`
 

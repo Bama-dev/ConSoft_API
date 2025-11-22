@@ -20,6 +20,19 @@ export const CategoryControlleer = {
 			res.status(500).json({ message: 'Internal server error' });
 		}
 	},
+	create: async (req: Request, res: Response) => {
+		try {
+			const { name, description } = req.body ?? {};
+			if (!name || typeof name !== 'string' || !name.trim()) {
+				return res.status(400).json({ message: 'name is required' });
+			}
+			const created = await CategoryModel.create({ name: name.trim(), description });
+			return res.status(201).json(created);
+		} catch (error) {
+			console.log(error)
+			return res.status(500).json({ message: 'Internal server error' });
+		}
+	},
 };
 
 // Alias para mantener compatibilidad y evitar errores por el typo

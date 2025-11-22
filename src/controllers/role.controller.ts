@@ -19,7 +19,13 @@ export const RoleController = {
 
 	create: async (req: Request, res: Response) => {
 		try {
-			const { name, description, permissions } = req.body;
+			const { name, description, permissions } = req.body ?? {};
+			if (!name || typeof name !== 'string' || !name.trim()) {
+				return res.status(400).json({ message: 'name is required' });
+			}
+			if (permissions != null && !Array.isArray(permissions)) {
+				return res.status(400).json({ message: 'permissions must be an array of ids' });
+			}
 
 			const exists = await RoleModel.findOne({ name });
 			if (exists) {
@@ -27,7 +33,7 @@ export const RoleController = {
 			}
 
 			// Crear nuevo rol
-			const newRole = await RoleModel.create({ name, description, permissions });
+			const newRole = await RoleModel.create({ name: name.trim(), description, permissions });
 
 			return res.status(201).json(newRole);
 		} catch (error) {
