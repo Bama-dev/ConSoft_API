@@ -21,6 +21,7 @@ const QuotationSchema = new Schema(
 		},
 		items: { type: [QuotationItemSchema], default: [] },
 		totalEstimate: { type: Number },
+		adminNotes: { type: String, trim: true },
 	},
 	{ timestamps: true, collection: 'cotizaciones' }
 );

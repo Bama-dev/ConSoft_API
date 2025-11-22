@@ -1,0 +1,117 @@
+## Endpoints de la API
+
+Esta guía resume los endpoints expuestos por el backend. Todos los paths están bajo el prefijo `/api`, salvo `GET /health`.
+
+Notas generales
+- Autenticación: cookie `token` (JWT). Para la mayoría de endpoints se requiere sesión iniciada.
+- Autorización: `verifyRole(module, action)` en recursos protegidos por permisos (módulos: roles, users, categories, products, services, visits, orders, payments, sales, permissions, quotations).
+- Errores: convenciones HTTP 4xx/5xx y mensajes `{ message | error }`.
+
+### Health
+- GET `/health` → { ok: true } (sin auth)
+
+### Autenticación
+- POST `/api/auth/login` → body: { email, password } → set-cookie `token`
+- POST `/api/auth/logout` → clear-cookie `token`
+- GET `/api/auth/me` → requiere cookie `token` → devuelve claims del usuario
+- POST `/api/auth/google` → body: { idToken }
+
+### Roles (permiso: roles.view/create/update/delete)
+- GET `/api/roles` → lista roles
+- GET `/api/roles/:id` → obtener rol
+- POST `/api/roles` → crear rol
+- PUT `/api/roles/:id` → actualizar rol
+- DELETE `/api/roles/:id` → eliminar rol
+
+### Permisos (permiso: permissions.view/create/update/delete)
+- GET `/api/permissions` → lista agrupada por módulo
+- GET `/api/permissions/:id`
+- POST `/api/permissions`
+- PUT `/api/permissions/:id`
+- DELETE `/api/permissions/:id`
+
+### Usuarios (permiso: users.view/create/update/delete)
+- GET `/api/users` → lista (sin password), con `role`
+- GET `/api/users/:id`
+- POST `/api/users` → { name, email, password } (asigna rol por defecto)
+- PUT `/api/users/:id` → actualiza campos (no permite escalar `role`)
+- DELETE `/api/users/:id`
+
+### Categorías (permiso: categories.view/create/update/delete)
+- GET `/api/categories` → lista con `products` (virtual populate)
+- GET `/api/categories/:id`
+- POST `/api/categories`
+- PUT `/api/categories/:id`
+- DELETE `/api/categories/:id`
+
+### Productos (permiso: products.view/create/update/delete)
+- GET `/api/products` → lista con `category`
+- GET `/api/products/:id`
+- POST `/api/products`
+- PUT `/api/products/:id`
+- DELETE `/api/products/:id`
+
+### Servicios (permiso: services.view/create/update/delete)
+- GET `/api/services`
+- GET `/api/services/:id`
+- POST `/api/services`
+- PUT `/api/services/:id`
+- DELETE `/api/services/:id`
+
+### Visitas (permiso: visits.view/create/update/delete)
+- GET `/api/visits` → lista con `user` y `services`
+- GET `/api/visits/:id`
+- POST `/api/visits`
+- PUT `/api/visits/:id`
+- DELETE `/api/visits/:id`
+
+### Pedidos (permiso: orders.view/create/update/delete)
+- GET `/api/orders` → lista con totales calculados (sin “pagados”)
+- GET `/api/orders/:id` → detalle con totales y `restante`
+- POST `/api/orders`
+- PUT `/api/orders/:id`
+- DELETE `/api/orders/:id`
+
+### Pagos (permiso: payments.view/create/update/delete)
+- GET `/api/payments` → pagos por pedido con cálculo de `restante` (acepta status 'aprobado' o 'confirmado' como aprobados)
+- GET `/api/payments/:id` → pagos de un pedido
+- POST `/api/payments` → { orderId, amount, paidAt, method, status }
+- PUT `/api/payments/:id` → actualizar pago embebido: { paymentId, ... }
+- DELETE `/api/payments/:id` → body: { paymentId } (elimina pago del pedido)
+
+### Ventas (permiso: sales.view)
+- GET `/api/sales` → pedidos con `restante <= 0` (pagados)
+
+### Cotizaciones
+Autenticado por cookie. Permisos finos para admin en listAll/quote.
+
+Flujo 1: Cotizar un solo producto (desde su ficha)
+- POST `/api/quotations/quick` → { productId, quantity?, color?, size?, notes? } → crea cotización `solicitada`
+- POST `/api/quotations/:id/quote` (permiso quotations.update) → { totalEstimate, adminNotes? } → estado `cotizada` + email al cliente
+- POST `/api/quotations/:id/decision` → { decision: 'accept' | 'reject' } → `en_proceso` | `cerrada` + email al admin
+
+Flujo 2: Carrito de cotización (varios productos)
+- POST `/api/quotations/cart` → crea/obtiene `carrito`
+- POST `/api/quotations/:id/items` → agrega ítem { productId, quantity?, color?, size?, notes? }
+- PUT `/api/quotations/:id/items/:itemId` → edita ítem
+- DELETE `/api/quotations/:id/items/:itemId` → elimina ítem
+- POST `/api/quotations/:id/submit` → cambia a `solicitada`
+
+Consultas
+- GET `/api/quotations/mine` → mis cotizaciones
+- GET `/api/quotations` (permiso quotations.view) → todas
+- GET `/api/quotations/:id` → detalle
+- GET `/api/quotations/:quotationId/messages` → historial chat
+
+### Chat en tiempo real (Socket.IO)
+Conexión
+- URL del servidor WebSocket: mismo host del backend
+- Handshake: `auth: { token: <JWT> }`
+
+Eventos
+- `quotation:join` → payload: { quotationId } (valida dueño o admin)
+- `chat:message` → payload: { quotationId, message }
+  - Emite a sala `q:<quotationId>`
+  - Si quien envía no es el dueño, se envía email al dueño con link
+
+

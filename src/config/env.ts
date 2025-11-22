@@ -19,4 +19,6 @@ export const env = {
 	mailSmtpUser: process.env.MAIL_SMTP_USER,
 	mailSmtpPass: process.env.MAIL_SMTP_PASS,
 	mailFrom: process.env.MAIL_FROM ?? 'no-reply@consoft.local',
+	// Notificaciones
+	adminNotifyEmail: process.env.ADMIN_NOTIFY_EMAIL,
 };

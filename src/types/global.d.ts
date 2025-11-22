@@ -10,6 +10,7 @@ declare namespace NodeJS {
     MAIL_SMTP_PASS?: string;
     MAIL_FROM?: string;
     FRONTEND_ORIGINS?: string;
+    ADMIN_NOTIFY_EMAIL?: string;
   }
 }
 
