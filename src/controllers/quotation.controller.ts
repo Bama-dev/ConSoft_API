@@ -13,6 +13,9 @@ export const QuotationController = {
 			if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 			const { productId, quantity, color, size, notes } = req.body ?? {};
 			if (!productId) return res.status(400).json({ message: 'productId is required' });
+			if (quantity != null && (!Number.isFinite(Number(quantity)) || Number(quantity) < 1)) {
+				return res.status(400).json({ message: 'quantity must be a positive number' });
+			}
 			const prod = await ProductModel.findById(productId).select('_id');
 			if (!prod) return res.status(404).json({ message: 'Product not found' });
 
@@ -51,6 +54,9 @@ export const QuotationController = {
 			const { productId, quantity, color, size, notes } = req.body;
 
 			if (!productId) return res.status(400).json({ message: 'productId is required' });
+			if (quantity != null && (!Number.isFinite(Number(quantity)) || Number(quantity) < 1)) {
+				return res.status(400).json({ message: 'quantity must be a positive number' });
+			}
 			const prod = await ProductModel.findById(productId).select('_id');
 			if (!prod) return res.status(404).json({ message: 'Product not found' });
 
@@ -97,7 +103,12 @@ export const QuotationController = {
 			const item = quotation.items.id(itemId) as any;
 			if (!item) return res.status(404).json({ message: 'Item not found' });
 
-			if (quantity != null) item.quantity = quantity;
+			if (quantity != null) {
+				if (!Number.isFinite(Number(quantity)) || Number(quantity) < 1) {
+					return res.status(400).json({ message: 'quantity must be a positive number' });
+				}
+				item.quantity = quantity;
+			}
 			if (color != null) item.color = color;
 			if (size != null) item.size = size;
 			if (notes != null) item.notes = notes;
@@ -166,6 +177,9 @@ export const QuotationController = {
 			const { totalEstimate, adminNotes } = req.body ?? {};
 			const quotation = await QuotationModel.findById(id).populate('user', 'email');
 			if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
+			if (totalEstimate == null || !Number.isFinite(Number(totalEstimate)) || Number(totalEstimate) < 0) {
+				return res.status(400).json({ message: 'totalEstimate must be a non-negative number' });
+			}
 			quotation.totalEstimate = totalEstimate;
 			if (adminNotes != null) quotation.adminNotes = adminNotes;
 			quotation.status = 'cotizada';
@@ -201,7 +215,8 @@ export const QuotationController = {
 			}
 			const quotation = await QuotationModel.findById(id).populate('user', 'email');
 			if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
-			if (String(quotation.user?._id ?? quotation.user) !== String(userId)) {
+			const ownerId = String((quotation.user as any)?._id ?? quotation.user);
+			if (ownerId !== String(userId)) {
 				return res.status(403).json({ message: 'Forbidden' });
 			}
 			if (decision === 'accept') {
@@ -264,7 +279,8 @@ export const QuotationController = {
 			if (!quotation) return res.status(404).json({ message: 'Not found' });
 
 			// Permitir al dueño o a quien tenga permisos (validación adicional se puede hacer en ruta con verifyRole)
-			if (String(quotation.user?._id ?? quotation.user) !== String(userId)) {
+			const ownerIdForGet = String((quotation.user as any)?._id ?? quotation.user);
+			if (ownerIdForGet !== String(userId)) {
 				// No es dueño; se asume validación de permisos en rutas para admin
 			}
 			return res.json(quotation);

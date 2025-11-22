@@ -21,9 +21,23 @@ export function initSocket(server: HttpServer) {
 		},
 	});
 
+	function readTokenFromCookie(cookieHeader?: string): string | null {
+		if (!cookieHeader) return null;
+		const parts = cookieHeader.split(';').map((c) => c.trim());
+		for (const part of parts) {
+			if (part.startsWith('token=')) {
+				return decodeURIComponent(part.slice('token='.length));
+			}
+		}
+		return null;
+	}
+
 	io.use((socket, next) => {
 		try {
-			const token = (socket.handshake.auth as any)?.token || (socket.handshake.query as any)?.token;
+			const token =
+				(socket.handshake.auth as any)?.token ||
+				(socket.handshake.query as any)?.token ||
+				readTokenFromCookie(socket.handshake.headers?.cookie as string | undefined);
 			if (!token) return next(new Error('Unauthorized'));
 			const decoded = jwt.verify(token, env.jwt_secret) as JwtPayload;
 			(socket as any).user = decoded;

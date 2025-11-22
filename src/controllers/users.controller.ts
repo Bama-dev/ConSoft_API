@@ -44,13 +44,14 @@ export const UserController = {
       // 1) Usar env.defaultUserRoleId si existe
       // 2) Si no, buscar por nombre ('Usuario' o 'Cliente')
       // 3) Si no se encuentra, retornar error controlado
-      let roleId = env.defaultUserRoleId;
+      let roleId: string | undefined = env.defaultUserRoleId;
       if (!roleId) {
-        const fallbackRole = await RoleModel.findOne({ name: { $in: ['Usuario', 'Cliente'] } }).select('_id');
-        roleId = fallbackRole ? String(fallbackRole._id) : undefined;
-      }
-      if (!roleId) {
-        return res.status(500).json({ error: "Default role not configured" });
+        let fallbackRole = await RoleModel.findOne({ name: { $in: ['Usuario', 'Cliente'] } }).select('_id');
+        if (!fallbackRole) {
+          await RoleModel.create({ name: 'Usuario', description: 'Usuario estándar' });
+          fallbackRole = await RoleModel.findOne({ name: 'Usuario' }).select('_id');
+        }
+        roleId = String((fallbackRole as any)._id);
       }
       const roleIdResolved: string = roleId;
 

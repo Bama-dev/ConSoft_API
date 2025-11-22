@@ -32,6 +32,8 @@ router.post('/auth/login', AuthController.login);
 router.post('/auth/logout', AuthController.logout);
 router.get('/auth/me', verifyToken, AuthController.me);
 router.post('/auth/google', AuthController.google);
+// Registro público de usuarios (para permitir sign-up y tests)
+router.post('/users', UserController.create);
 
 // === RUTAS PROTEGIDAS === //
 router.use(verifyToken);
