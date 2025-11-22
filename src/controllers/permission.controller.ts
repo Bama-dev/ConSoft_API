@@ -9,11 +9,32 @@ export const PermissionController = {
 	list: async (req: Request, res: Response) => {
 		try {
 			const permisos = await PermissionModel.aggregate([
+				// Derivar module/action desde 'name' si no existen los campos (compatibilidad con seeds antiguos)
+				{
+					$addFields: {
+						derivedModule: {
+							$ifNull: [
+								'$module',
+								{ $arrayElemAt: [{ $split: ['$name', '.'] }, 0] },
+							],
+						},
+						derivedAction: {
+							$ifNull: [
+								'$action',
+								{ $arrayElemAt: [{ $split: ['$name', '.'] }, 1] },
+							],
+						},
+					},
+				},
 				{
 					$group: {
-						_id: '$module',
+						_id: '$derivedModule',
 						permissions: {
-							$push: { _id: '$_id', module: '$module', action: '$action' },
+							$push: {
+								_id: '$_id',
+								module: '$derivedModule',
+								action: '$derivedAction',
+							},
 						},
 					},
 				},

@@ -12,6 +12,8 @@ import { SaleController } from '../controllers/sales.controller';
 import { PermissionController } from '../controllers/permission.controller';
 import { verifyToken } from '../middlewares/auth.middleware';
 import { verifyRole } from '../middlewares/verifyRole';
+import { QuotationController } from '../controllers/quotation.controller';
+import { ChatController } from '../controllers/chat.controller';
 
 const router = Router();
 
@@ -44,5 +46,16 @@ mountCrud('orders', OrderController);
 mountCrud('payments', PaymentController);
 mountCrud('sales', SaleController);
 mountCrud('permissions', PermissionController);
+
+// === COTIZACIONES (protegidas sólo por autenticación; permisos finos se pueden agregar luego) === //
+router.get('/quotations/mine', QuotationController.listMine);
+router.post('/quotations/cart', QuotationController.createOrGetCart);
+router.post('/quotations/:id/items', QuotationController.addItem);
+router.put('/quotations/:id/items/:itemId', QuotationController.updateItem);
+router.delete('/quotations/:id/items/:itemId', QuotationController.removeItem);
+router.post('/quotations/:id/submit', QuotationController.submit);
+router.get('/quotations', verifyRole('quotations', 'view'), QuotationController.listAll);
+router.get('/quotations/:id', QuotationController.get);
+router.get('/quotations/:quotationId/messages', ChatController.listMessages);
 
 export default router;

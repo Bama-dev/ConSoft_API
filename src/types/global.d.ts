@@ -4,6 +4,12 @@ declare namespace NodeJS {
     PORT?: string;
     MONGO_URI?: string;
     JWT_SECRET?: string;
+    MAIL_SMTP_HOST?: string;
+    MAIL_SMTP_PORT?: string;
+    MAIL_SMTP_USER?: string;
+    MAIL_SMTP_PASS?: string;
+    MAIL_FROM?: string;
+    FRONTEND_ORIGINS?: string;
   }
 }
 

@@ -4,6 +4,7 @@ import { createCrudController } from "./crud.controller";
 import { Response } from "express";
 import { hash } from "bcrypt";
 import { env } from "../config/env";
+import { RoleModel } from "../models/role.model";
 
 const base = createCrudController(UserModel);
 
@@ -39,11 +40,24 @@ export const UserController = {
 
       const hashedPass = await hash(password, 10);
 
+      // Resolver rol por defecto de forma segura:
+      // 1) Usar env.defaultUserRoleId si existe
+      // 2) Si no, buscar por nombre ('Usuario' o 'Cliente')
+      // 3) Si no se encuentra, retornar error controlado
+      let roleId = env.defaultUserRoleId;
+      if (!roleId) {
+        const fallbackRole = await RoleModel.findOne({ name: { $in: ['Usuario', 'Cliente'] } }).select('_id');
+        roleId = fallbackRole ? String(fallbackRole._id) : undefined;
+      }
+      if (!roleId) {
+        return res.status(500).json({ error: "Default role not configured" });
+      }
+
       const userData = {
         name,
         email,
         password: hashedPass,
-        role: env.defaultUserRoleId,
+        role: roleId,
       };
 
       const newUser = await UserModel.create(userData);

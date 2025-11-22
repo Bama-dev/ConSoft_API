@@ -21,3 +21,6 @@ export const CategoryControlleer = {
 		}
 	},
 };
+
+// Alias para mantener compatibilidad y evitar errores por el typo
+export const CategoryController = CategoryControlleer;

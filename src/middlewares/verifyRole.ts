@@ -19,9 +19,20 @@ export const verifyRole = (module: string, action: string) => {
 				return res.status(403).json({ message: 'User has no assigned permissions' });
 			}
 
-			const hasPermission = role.permissions.some(
-				(perm: any) => perm.module === module && perm.action === action
-			);
+			const hasPermission = role.permissions.some((perm: any) => {
+				// Soporte para dos formatos:
+				// 1) { module, action }
+				// 2) { name: 'module.action' }
+				if (perm && typeof perm.module === 'string' && typeof perm.action === 'string') {
+					return perm.module === module && perm.action === action;
+				}
+				const name: unknown = perm?.name;
+				if (typeof name === 'string' && name.includes('.')) {
+					const [mod, act] = name.split('.');
+					return mod === module && act === action;
+				}
+				return false;
+			});
 
 			if (!hasPermission) {
 				return res

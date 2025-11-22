@@ -12,7 +12,7 @@ const UserSchema = new Schema({
 	role: { type: Types.ObjectId, ref: 'Role', required: true },
 	status: { type: Boolean, default: true },
 	registeredAt: { type: Date, default: () => new Date() },
-	favorites: [{ type: Types.ObjectId, ref: 'Product' }],
+	favorites: [{ type: Types.ObjectId, ref: 'Producto' }],
 	
 });
 
