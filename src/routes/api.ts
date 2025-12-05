@@ -35,6 +35,15 @@ router.post('/auth/google', AuthController.google);
 // Registro público de usuarios (para permitir sign-up y tests)
 router.post('/users', UserController.create);
 
+// Catálogo público: categorías, productos y servicios visibles sin login
+// Listado y detalle abiertos
+if (CategoryControlleer.list) router.get('/categories', CategoryControlleer.list);
+if (CategoryControlleer.get) router.get('/categories/:id', CategoryControlleer.get);
+if (ProductController.list) router.get('/products', ProductController.list);
+if (ProductController.get) router.get('/products/:id', ProductController.get);
+if (ServiceController.list) router.get('/services', ServiceController.list);
+if (ServiceController.get) router.get('/services/:id', ServiceController.get);
+
 // === RUTAS PROTEGIDAS === //
 router.use(verifyToken);
 

@@ -26,6 +26,12 @@ const QuotationSchema = new Schema(
 	{ timestamps: true, collection: 'cotizaciones' }
 );
 
+// Garantiza UN solo carrito activo por usuario
+QuotationSchema.index(
+	{ user: 1, status: 1 },
+	{ unique: true, partialFilterExpression: { status: 'carrito' } }
+);
+
 export const QuotationModel = model('Cotizacion', QuotationSchema);
 
 

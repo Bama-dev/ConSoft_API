@@ -1,0 +1,491 @@
+openapi: 3.0.3
+info:
+  title: ConSoft API
+  version: 1.0.0
+  description: API para gestión de usuarios, catálogo, cotizaciones, pedidos y chat.
+servers:
+  - url: http://localhost:3000
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+  /api/auth/login:
+    post:
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: Login ok (devuelve token y setea cookie httpOnly)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  token: { type: string }
+  /api/auth/google:
+    post:
+      summary: Login con Google (idToken)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken]
+              properties:
+                idToken: { type: string }
+      responses:
+        '200':
+          description: Login ok
+  /api/auth/me:
+    get:
+      summary: Usuario actual (JWT)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Usuario
+  /api/auth/logout:
+    post:
+      summary: Logout
+      responses:
+        '200': { description: OK }
+  /api/users:
+    post:
+      summary: Registro público
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password:
+                  type: string
+                  description: Debe incluir al menos 1 mayúscula, 1 número y 1 caracter especial
+                  pattern: '^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).+$'
+      responses:
+        '200': { description: Registrado }
+  /api/categories:
+    get:
+      summary: Listar categorías (público)
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Crear categoría
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                description: { type: string }
+      responses:
+        '201': { description: Creado }
+  /api/categories/{id}:
+    get:
+      summary: Obtener categoría por id (público)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+    put:
+      summary: Actualizar categoría
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                description: { type: string }
+      responses:
+        '200': { description: OK }
+    delete:
+      summary: Eliminar categoría
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Sin contenido }
+  /api/products:
+    get:
+      summary: Listar productos (público)
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Crear producto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, category]
+              properties:
+                name: { type: string }
+                category: { type: string }
+                description: { type: string }
+                status: { type: boolean }
+                imageUrl: { type: string }
+      responses:
+        '201': { description: Creado }
+  /api/products/{id}:
+    get:
+      summary: Obtener producto por id (público)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+    put:
+      summary: Actualizar producto
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                category: { type: string }
+                description: { type: string }
+                status: { type: boolean }
+                imageUrl: { type: string }
+      responses:
+        '200': { description: OK }
+    delete:
+      summary: Eliminar producto
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Sin contenido }
+  /api/services:
+    get:
+      summary: Listar servicios (público)
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Crear servicio
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                description: { type: string }
+                imageUrl: { type: string }
+                status: { type: boolean }
+      responses:
+        '201': { description: Creado }
+  /api/services/{id}:
+    get:
+      summary: Obtener servicio por id (público)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+    put:
+      summary: Actualizar servicio
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                description: { type: string }
+                imageUrl: { type: string }
+                status: { type: boolean }
+      responses:
+        '200': { description: OK }
+    delete:
+      summary: Eliminar servicio
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Sin contenido }
+  /api/quotations/quick:
+    post:
+      summary: Crear cotización rápida por producto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productId]
+              properties:
+                productId: { type: string }
+                quantity: { type: number, minimum: 1 }
+                color: { type: string }
+                size: { type: string }
+                notes: { type: string }
+      responses:
+        '201': { description: Creado }
+  /api/quotations/cart:
+    post:
+      summary: Crear o obtener carrito activo
+      security:
+        - bearerAuth: []
+      responses:
+        '200': { description: OK }
+  /api/quotations/{id}/items:
+    post:
+      summary: Agregar item al carrito
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productId]
+              properties:
+                productId: { type: string }
+                quantity: { type: number, minimum: 1 }
+                color: { type: string }
+                size: { type: string }
+                notes: { type: string }
+      responses:
+        '201': { description: Agregado }
+  /api/quotations/{id}/items/{itemId}:
+    put:
+      summary: Actualizar item del carrito
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: path
+          name: itemId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity: { type: number, minimum: 1 }
+                color: { type: string }
+                size: { type: string }
+                notes: { type: string }
+      responses:
+        '200': { description: OK }
+    delete:
+      summary: Eliminar item del carrito
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: path
+          name: itemId
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Sin contenido }
+  /api/quotations/{id}/submit:
+    post:
+      summary: Enviar carrito como cotización solicitada
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+  /api/quotations/{id}/quote:
+    post:
+      summary: Fijar precio de cotización (admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [totalEstimate]
+              properties:
+                totalEstimate: { type: number, minimum: 0 }
+                adminNotes: { type: string }
+      responses:
+        '200': { description: Actualizado }
+  /api/quotations/{id}/decision:
+    post:
+      summary: Aceptar/Rechazar cotización (usuario). Si acepta, crea Pedido.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision:
+                  type: string
+                  enum: [accept, reject]
+      responses:
+        '200': { description: OK }
+  /api/quotations/mine:
+    get:
+      summary: Mis cotizaciones
+      security:
+        - bearerAuth: []
+      responses:
+        '200': { description: OK }
+  /api/quotations:
+    get:
+      summary: Listar todas las cotizaciones (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        '200': { description: OK }
+  /api/quotations/{id}:
+    get:
+      summary: Obtener cotización por id (autenticado; dueño o admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+  /api/quotations/{quotationId}/messages:
+    get:
+      summary: Mensajes de chat de una cotización (dueño o admin)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: quotationId
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+
+
+
+
+
+
+
+

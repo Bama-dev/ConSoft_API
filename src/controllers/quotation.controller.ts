@@ -4,6 +4,7 @@ import { ProductModel } from '../models/product.model';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { sendEmail } from '../utils/mailer';
 import { env } from '../config/env';
+import { OrderModel } from '../models/order.model';
 
 export const QuotationController = {
 	// Flujo "cotizar" directo desde un producto (una sola llamada)
@@ -36,10 +37,12 @@ export const QuotationController = {
 			const userId = req.user?.id;
 			if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
-			let cart = await QuotationModel.findOne({ user: userId, status: 'carrito' }).populate('items.product');
-			if (!cart) {
-				cart = await QuotationModel.create({ user: userId, status: 'carrito', items: [] });
-			}
+			// Operación atómica: crea si no existe, o devuelve el existente
+			const cart = await QuotationModel.findOneAndUpdate(
+				{ user: userId, status: 'carrito' },
+				{ $setOnInsert: { user: userId, status: 'carrito', items: [] } },
+				{ new: true, upsert: true }
+			).populate('items.product');
 			return res.json({ ok: true, cart });
 		} catch (err) {
 			return res.status(500).json({ error: 'Error creating/getting cart' });
@@ -221,6 +224,26 @@ export const QuotationController = {
 			}
 			if (decision === 'accept') {
 				quotation.status = 'en_proceso';
+				// Crear pedido si no existe uno derivado de esta cotización (heurística simple)
+				const existingOrder = await OrderModel.findOne({
+					user: quotation.user as any,
+					status: 'en_proceso',
+					startedAt: { $gte: new Date(Date.now() - 5 * 60 * 1000) }, // últimos 5 minutos
+				});
+				if (!existingOrder) {
+					const total = Number(quotation.totalEstimate ?? 0);
+					await OrderModel.create({
+						user: quotation.user as any,
+						status: 'en_proceso',
+						startedAt: new Date(),
+						items: [
+							{
+								detalles: `Cotización ${quotation._id}`,
+								valor: total > 0 ? total : undefined,
+							},
+						],
+					} as any);
+				}
 			} else {
 				quotation.status = 'cerrada';
 			}

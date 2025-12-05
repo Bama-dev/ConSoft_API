@@ -30,6 +30,16 @@ export const UserController = {
         password,
       } = req.body;
 
+      // Password complexity: require at least one uppercase, one number, and one special character
+      const hasUppercase = typeof password === 'string' && /[A-Z]/.test(password);
+      const hasNumber = typeof password === 'string' && /\d/.test(password);
+      const hasSpecial = typeof password === 'string' && /[^A-Za-z0-9]/.test(password);
+      if (!password || !hasUppercase || !hasNumber || !hasSpecial) {
+        return res.status(400).json({
+          message: "Password must include at least one uppercase letter, one number, and one special character",
+        });
+      }
+
       const existing = await UserModel.findOne({ email });
 
       if (existing) {
