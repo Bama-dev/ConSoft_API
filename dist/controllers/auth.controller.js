@@ -14,7 +14,13 @@ exports.AuthController = {
     login: async (req, res) => {
         try {
             const { email, password } = req.body;
-            const user = await user_model_1.UserModel.findOne({ email }).populate('role', 'name');
+            const user = await user_model_1.UserModel.findOne({ email }).populate({
+                path: "role",
+                populate: {
+                    path: "permissions",
+                    model: "Permiso"
+                }
+            });
             if (!user) {
                 return res.status(404).json({ message: 'User not found' });
             }
@@ -25,10 +31,8 @@ exports.AuthController = {
             const payload = {
                 id: user._id,
                 email: user.email,
+                role: user.role,
             };
-            if (user.role) {
-                payload.role = { id: user.role._id, name: user.role.name };
-            }
             const token = (0, jwt_1.generateToken)(payload);
             res.cookie('token', token, {
                 httpOnly: true,

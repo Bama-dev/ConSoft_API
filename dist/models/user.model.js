@@ -13,6 +13,6 @@ const UserSchema = new mongoose_1.Schema({
     role: { type: mongoose_1.Types.ObjectId, ref: 'Role', required: true },
     status: { type: Boolean, default: true },
     registeredAt: { type: Date, default: () => new Date() },
-    favorites: [{ type: mongoose_1.Types.ObjectId, ref: 'Product' }],
+    favorites: [{ type: mongoose_1.Types.ObjectId, ref: 'Producto' }],
 });
 exports.UserModel = (0, mongoose_1.model)('User', UserSchema);

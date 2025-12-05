@@ -88,4 +88,11 @@ node -r ts-node/register database/create_indexes.ts
 node -r ts-node/register database/seed.ts
 ```
 
+---
+
+## 📚 Documentación
+
+- Endpoints de la API: `docs/api-endpoints.md`
+- Módulo de Cotizaciones: `docs/quotations.md`
+
 

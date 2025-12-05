@@ -32,6 +32,17 @@ router.post('/auth/login', AuthController.login);
 router.post('/auth/logout', AuthController.logout);
 router.get('/auth/me', verifyToken, AuthController.me);
 router.post('/auth/google', AuthController.google);
+// Registro público de usuarios (para permitir sign-up y tests)
+router.post('/users', UserController.create);
+
+// Catálogo público: categorías, productos y servicios visibles sin login
+// Listado y detalle abiertos
+if (CategoryControlleer.list) router.get('/categories', CategoryControlleer.list);
+if (CategoryControlleer.get) router.get('/categories/:id', CategoryControlleer.get);
+if (ProductController.list) router.get('/products', ProductController.list);
+if (ProductController.get) router.get('/products/:id', ProductController.get);
+if (ServiceController.list) router.get('/services', ServiceController.list);
+if (ServiceController.get) router.get('/services/:id', ServiceController.get);
 
 // === RUTAS PROTEGIDAS === //
 router.use(verifyToken);
@@ -50,10 +61,13 @@ mountCrud('permissions', PermissionController);
 // === COTIZACIONES (protegidas sólo por autenticación; permisos finos se pueden agregar luego) === //
 router.get('/quotations/mine', QuotationController.listMine);
 router.post('/quotations/cart', QuotationController.createOrGetCart);
+router.post('/quotations/quick', QuotationController.quickCreate);
 router.post('/quotations/:id/items', QuotationController.addItem);
 router.put('/quotations/:id/items/:itemId', QuotationController.updateItem);
 router.delete('/quotations/:id/items/:itemId', QuotationController.removeItem);
 router.post('/quotations/:id/submit', QuotationController.submit);
+router.post('/quotations/:id/quote', verifyRole('quotations', 'update'), QuotationController.adminSetQuote);
+router.post('/quotations/:id/decision', QuotationController.userDecision);
 router.get('/quotations', verifyRole('quotations', 'view'), QuotationController.listAll);
 router.get('/quotations/:id', QuotationController.get);
 router.get('/quotations/:quotationId/messages', ChatController.listMessages);

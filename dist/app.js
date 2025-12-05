@@ -13,6 +13,7 @@ const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const env_1 = require("./config/env");
 function createApp() {
     const app = (0, express_1.default)();
+    app.set('trust proxy', 1);
     app.use((0, helmet_1.default)());
     app.use(express_1.default.json());
     app.use((0, cors_1.default)({

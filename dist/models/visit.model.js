@@ -12,7 +12,7 @@ const VisitSchema = new mongoose_1.Schema({
             {
                 type: mongoose_1.Types.ObjectId,
                 required: true,
-                ref: 'servicios',
+                ref: 'Servicio',
             },
         ],
         default: [],

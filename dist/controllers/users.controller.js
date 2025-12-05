@@ -5,6 +5,7 @@ const user_model_1 = require("../models/user.model");
 const crud_controller_1 = require("./crud.controller");
 const bcrypt_1 = require("bcrypt");
 const env_1 = require("../config/env");
+const role_model_1 = require("../models/role.model");
 const base = (0, crud_controller_1.createCrudController)(user_model_1.UserModel);
 exports.UserController = {
     ...base,
@@ -30,11 +31,23 @@ exports.UserController = {
                     .json({ message: "This email is already in use" });
             }
             const hashedPass = await (0, bcrypt_1.hash)(password, 10);
+            // Resolver rol por defecto de forma segura:
+            // 1) Usar env.defaultUserRoleId si existe
+            // 2) Si no, buscar por nombre ('Usuario' o 'Cliente')
+            // 3) Si no se encuentra, retornar error controlado
+            let roleId = env_1.env.defaultUserRoleId;
+            if (!roleId) {
+                const fallbackRole = await role_model_1.RoleModel.findOne({ name: { $in: ['Usuario', 'Cliente'] } }).select('_id');
+                roleId = fallbackRole ? String(fallbackRole._id) : undefined;
+            }
+            if (!roleId) {
+                return res.status(500).json({ error: "Default role not configured" });
+            }
             const userData = {
                 name,
                 email,
                 password: hashedPass,
-                role: env_1.env.defaultUserRoleId,
+                role: roleId,
             };
             const newUser = await user_model_1.UserModel.create(userData);
             res.json({ message: "User registered successfully" });
