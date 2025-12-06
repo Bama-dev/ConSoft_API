@@ -415,7 +415,7 @@ paths:
         '200': { description: Actualizado }
   /api/quotations/{id}/decision:
     post:
-      summary: Aceptar/Rechazar cotización (usuario). Si acepta, crea Pedido.
+      summary: Aceptar/Rechazar cotización (usuario). Si acepta, crea Pedido y elimina la cotización.
       security:
         - bearerAuth: []
       parameters:
@@ -435,7 +435,16 @@ paths:
                   type: string
                   enum: [accept, reject]
       responses:
-        '200': { description: OK }
+        '200':
+          description: OK (cotización eliminada)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  deleted: { type: boolean }
+                  quotationId: { type: string }
   /api/quotations/mine:
     get:
       summary: Mis cotizaciones

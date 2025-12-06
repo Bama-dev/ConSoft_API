@@ -85,6 +85,7 @@ Autenticación: cookie httpOnly `token` (se setea al hacer login) o header `Auth
   - Body: `{ "totalEstimate": 120000, "adminNotes": "Incluye envío" }`
 - POST {{BASE}}/api/quotations/:id/decision
   - Body: `{ "decision": "accept" }` | `{ "decision": "reject" }`
+  - Nota: al aceptar o rechazar, la cotización se elimina de la BD para permitir nuevas solicitudes. Respuesta: `{ "ok": true, "deleted": true, "quotationId": "..." }`
 - GET {{BASE}}/api/quotations/mine
 - GET {{BASE}}/api/quotations (admin)
 - GET {{BASE}}/api/quotations/:id
