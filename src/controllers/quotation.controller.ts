@@ -180,8 +180,14 @@ export const QuotationController = {
 			const { totalEstimate, adminNotes } = req.body ?? {};
 			const quotation = await QuotationModel.findById(id).populate('user', 'email');
 			if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
-			if (totalEstimate == null || !Number.isFinite(Number(totalEstimate)) || Number(totalEstimate) < 0) {
-				return res.status(400).json({ message: 'totalEstimate must be a non-negative number' });
+			if (
+				totalEstimate == null ||
+				!Number.isFinite(Number(totalEstimate)) ||
+				Number(totalEstimate) < 0
+			) {
+				return res
+					.status(400)
+					.json({ message: 'totalEstimate must be a non-negative number' });
 			}
 			quotation.totalEstimate = totalEstimate;
 			if (adminNotes != null) quotation.adminNotes = adminNotes;
@@ -238,8 +244,11 @@ export const QuotationController = {
 						startedAt: new Date(),
 						items: [
 							{
-								detalles: `Cotización ${quotation._id}`,
+								detalles: `Cotización ${
+									quotation.adminNotes ? ' - ' + quotation.adminNotes : ''
+								}`,
 								valor: total > 0 ? total : undefined,
+								id_servicio: "68d47cf4da9d98534c933ff9"
 							},
 						],
 					} as any);
@@ -256,9 +265,15 @@ export const QuotationController = {
 				const link = `${linkBase}/cotizaciones/${quotation._id}`;
 				await sendEmail({
 					to,
-					subject: `Decisión del cliente: ${decision === 'accept' ? 'ACEPTÓ' : 'RECHAZÓ'} la cotización`,
-					text: `El cliente ha ${decision === 'accept' ? 'aceptado' : 'rechazado'} la cotización. ${link}`,
-					html: `<p>El cliente ha <strong>${decision === 'accept' ? 'aceptado' : 'rechazado'}</strong> la cotización.</p><p><a href="${link}">Ver cotización</a></p>`,
+					subject: `Decisión del cliente: ${
+						decision === 'accept' ? 'ACEPTÓ' : 'RECHAZÓ'
+					} la cotización`,
+					text: `El cliente ha ${
+						decision === 'accept' ? 'aceptado' : 'rechazado'
+					} la cotización. ${link}`,
+					html: `<p>El cliente ha <strong>${
+						decision === 'accept' ? 'aceptado' : 'rechazado'
+					}</strong> la cotización.</p><p><a href="${link}">Ver cotización</a></p>`,
 				});
 			}
 			// Eliminar mensajes de chat y la cotización para permitir nuevas solicitudes
@@ -320,5 +335,3 @@ export const QuotationController = {
 		}
 	},
 };
-
-
