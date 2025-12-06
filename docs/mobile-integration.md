@@ -16,6 +16,7 @@ Endpoints
 - GET `/api/auth/me` → requiere autenticación (cookie o Bearer).
 - POST `/api/auth/logout` → limpia cookie (en Bearer, descarta el token del lado del cliente).
 - Registro público: POST `/api/users` → `{ name, email, password }` (asigna rol por defecto).
+  - La contraseña debe incluir al menos 1 mayúscula, 1 número y 1 caracter especial.
 
 Ejemplo React Native (login + guardar token)
 ```javascript
@@ -45,6 +46,32 @@ async function fetchMe(token) {
 - Enviar `Content-Type: application/json` para POST/PUT con body JSON.
 - Errores: HTTP 4xx/5xx con `{ message | error }`.
 - Paginación: no aplica por defecto (endpoints devuelven colecciones completas según el recurso).
+
+### Catálogo público (sin autenticación)
+- Categorías
+  - GET `/api/categories`
+  - GET `/api/categories/:id`
+- Productos
+  - GET `/api/products`
+  - GET `/api/products/:id`
+- Servicios
+  - GET `/api/services`
+  - GET `/api/services/:id`
+
+Ejemplos React Native (catálogo)
+```javascript
+async function listProducts() {
+  const res = await fetch(`${API}/api/products`);
+  if (!res.ok) throw new Error('Error listing products');
+  return await res.json(); // { ok: true, products }
+}
+
+async function getCategory(id) {
+  const res = await fetch(`${API}/api/categories/${id}`);
+  if (!res.ok) throw new Error('Error getting category');
+  return await res.json();
+}
+```
 
 ### Productos
 - GET `/api/products` → lista de productos (con categoría).
@@ -94,6 +121,18 @@ async function addToCart(token, quotationId, productId, options) {
   return await res.json();
 }
 ```
+
+### Reglas de negocio relevantes para móvil
+- Carrito único por usuario: solo puede existir 1 carrito activo (`status: 'carrito'`) por usuario. El endpoint `/api/quotations/cart` hace creación/obtención atómica (no necesitas validar en cliente).
+- Decisión final (aceptar/rechazar):
+  - POST `/api/quotations/:id/decision` → `{ decision: 'accept' | 'reject' }`
+  - Si aceptas, se crea automáticamente un `Order` si no existe uno reciente.
+  - En ambos casos (accept/reject), se eliminan la cotización y sus mensajes de chat en la BD.
+  - Respuesta:
+    ```json
+    { "ok": true, "deleted": true, "quotationId": "<id>" }
+    ```
+  - Consideración en la app: después de decidir, no vuelvas a consultar la misma cotización; refresca la lista (`/api/quotations/mine`).
 
 ### Chat en tiempo real (por cotización)
 - Librería cliente: `socket.io-client`
@@ -148,6 +187,8 @@ function sendMessage(quotationId, message) {
   - Cotización:
     - `quantity > 0` en quick/add/update si se envía.
     - `totalEstimate >= 0` en `quote` (admin).
+- Decisión:
+  - Al aceptar o rechazar una cotización, el backend elimina la cotización y sus mensajes asociados.
 - Respuestas de éxito: 200/201 con payload del recurso.
 - Errores: 400 (validación), 401 (no autenticado), 403 (sin permisos), 404 (no encontrado), 500 (servidor).
 
