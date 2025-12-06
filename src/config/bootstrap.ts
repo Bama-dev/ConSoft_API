@@ -1,4 +1,5 @@
 import { RoleModel } from '../models/role.model';
+import { PermissionModel } from '../models/permission.model';
 import { env } from './env';
 
 /**
@@ -27,6 +28,42 @@ export async function ensureCoreData(): Promise<void> {
   }
   if (!env.defaultUserRoleId) {
     (env as any).defaultUserRoleId = String(userRole._id);
+  }
+
+  // Ensure base permissions and assign all to Admin
+  const modules = [
+    'roles',
+    'users',
+    'categories',
+    'products',
+    'services',
+    'visits',
+    'orders',
+    'payments',
+    'sales',
+    'permissions',
+    'quotations',
+  ];
+  const actions = ['view', 'create', 'update', 'delete'];
+
+  const permIds: string[] = [];
+  for (const module of modules) {
+    for (const action of actions) {
+      // Upsert-like: find or create permission
+      let perm = await PermissionModel.findOne({ module, action });
+      if (!perm) {
+        perm = await PermissionModel.create({ module, action });
+      }
+      permIds.push(String(perm._id));
+    }
+  }
+
+  // Attach to Admin role if not present
+  const current = new Set((adminRole.permissions as any[]).map((p: any) => String(p)));
+  const toAdd = permIds.filter((id) => !current.has(id));
+  if (toAdd.length > 0) {
+    (adminRole.permissions as any[]).push(...toAdd as any);
+    await adminRole.save();
   }
 }
 
