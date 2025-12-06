@@ -261,7 +261,15 @@ export const QuotationController = {
 					html: `<p>El cliente ha <strong>${decision === 'accept' ? 'aceptado' : 'rechazado'}</strong> la cotización.</p><p><a href="${link}">Ver cotización</a></p>`,
 				});
 			}
-			return res.json({ ok: true, quotation });
+			// Eliminar mensajes de chat y la cotización para permitir nuevas solicitudes
+			try {
+				const { ChatMessageModel } = await import('../models/chatMessage.model');
+				await ChatMessageModel.deleteMany({ quotation: quotation._id });
+			} catch (_e) {
+				// no-op si el modelo no está disponible por alguna razón
+			}
+			await QuotationModel.deleteOne({ _id: quotation._id });
+			return res.json({ ok: true, deleted: true, quotationId: String(quotation._id) });
 		} catch (err) {
 			return res.status(500).json({ error: 'Error applying decision' });
 		}
