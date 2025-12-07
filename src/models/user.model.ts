@@ -16,4 +16,7 @@ const UserSchema = new Schema({
 	
 });
 
+// Índices útiles
+UserSchema.index({ role: 1 });
+
 export const UserModel = model<IUser>('User', UserSchema);

@@ -16,4 +16,7 @@ CategorySchema.virtual('products', {
 
 CategorySchema.set('toJSON', { virtuals: true });
 
+// Índice por nombre para búsquedas
+CategorySchema.index({ name: 1 });
+
 export const CategoryModel = model('Categoria', CategorySchema);

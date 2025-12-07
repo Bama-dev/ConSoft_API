@@ -63,25 +63,26 @@ export const QuotationController = {
 			const prod = await ProductModel.findById(productId).select('_id');
 			if (!prod) return res.status(404).json({ message: 'Product not found' });
 
-			const quotation = await QuotationModel.findById(quotationId);
-			if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
-			if (String(quotation.user) !== String(userId)) {
-				return res.status(403).json({ message: 'Forbidden' });
+			// Operación atómica: push al array si es del usuario y está en 'carrito'
+			const updated = await QuotationModel.findOneAndUpdate(
+				{ _id: quotationId, user: userId, status: 'carrito' },
+				{
+					$push: {
+						items: {
+							product: prod._id,
+							quantity: quantity ?? 1,
+							color,
+							size,
+							notes,
+						},
+					},
+				},
+				{ new: true }
+			).populate('items.product');
+			if (!updated) {
+				return res.status(400).json({ message: 'Cannot modify quotation (not found or not a cart owned by user)' });
 			}
-			if (quotation.status !== 'carrito') {
-				return res.status(400).json({ message: 'Cannot modify a non-cart quotation' });
-			}
-
-			quotation.items.push({
-				product: prod._id,
-				quantity: quantity ?? 1,
-				color,
-				size,
-				notes,
-			} as any);
-			await quotation.save();
-			const populated = await quotation.populate('items.product');
-			return res.status(201).json({ ok: true, quotation: populated });
+			return res.status(201).json({ ok: true, quotation: updated });
 		} catch (err) {
 			return res.status(500).json({ error: 'Error adding item' });
 		}
@@ -95,29 +96,24 @@ export const QuotationController = {
 			const itemId = req.params.itemId;
 			const { quantity, color, size, notes } = req.body ?? {};
 
-			const quotation = await QuotationModel.findById(quotationId);
-			if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
-			if (String(quotation.user) !== String(userId)) {
-				return res.status(403).json({ message: 'Forbidden' });
+			if (quantity != null && (!Number.isFinite(Number(quantity)) || Number(quantity) < 1)) {
+				return res.status(400).json({ message: 'quantity must be a positive number' });
 			}
-			if (quotation.status !== 'carrito') {
-				return res.status(400).json({ message: 'Cannot modify a non-cart quotation' });
-			}
-			const item = quotation.items.id(itemId) as any;
-			if (!item) return res.status(404).json({ message: 'Item not found' });
+			const setOps: any = {};
+			if (quantity != null) setOps['items.$.quantity'] = quantity;
+			if (color != null) setOps['items.$.color'] = color;
+			if (size != null) setOps['items.$.size'] = size;
+			if (notes != null) setOps['items.$.notes'] = notes;
 
-			if (quantity != null) {
-				if (!Number.isFinite(Number(quantity)) || Number(quantity) < 1) {
-					return res.status(400).json({ message: 'quantity must be a positive number' });
-				}
-				item.quantity = quantity;
+			const updated = await QuotationModel.findOneAndUpdate(
+				{ _id: quotationId, user: userId, status: 'carrito', 'items._id': itemId },
+				{ $set: setOps },
+				{ new: true }
+			).populate('items.product');
+			if (!updated) {
+				return res.status(404).json({ message: 'Quotation or item not found, or not a cart' });
 			}
-			if (color != null) item.color = color;
-			if (size != null) item.size = size;
-			if (notes != null) item.notes = notes;
-			await quotation.save();
-			const populated = await quotation.populate('items.product');
-			return res.json({ ok: true, quotation: populated });
+			return res.json({ ok: true, quotation: updated });
 		} catch (err) {
 			return res.status(500).json({ error: 'Error updating item' });
 		}
@@ -130,21 +126,15 @@ export const QuotationController = {
 			const quotationId = req.params.id;
 			const itemId = req.params.itemId;
 
-			const quotation = await QuotationModel.findById(quotationId);
-			if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
-			if (String(quotation.user) !== String(userId)) {
-				return res.status(403).json({ message: 'Forbidden' });
+			const updated = await QuotationModel.findOneAndUpdate(
+				{ _id: quotationId, user: userId, status: 'carrito' },
+				{ $pull: { items: { _id: itemId } } },
+				{ new: true }
+			).populate('items.product');
+			if (!updated) {
+				return res.status(404).json({ message: 'Quotation not found or not a cart' });
 			}
-			if (quotation.status !== 'carrito') {
-				return res.status(400).json({ message: 'Cannot modify a non-cart quotation' });
-			}
-			const item = quotation.items.id(itemId);
-			if (!item) return res.status(404).json({ message: 'Item not found' });
-
-			item.deleteOne();
-			await quotation.save();
-			const populated = await quotation.populate('items.product');
-			return res.status(204).json({ ok: true, quotation: populated });
+			return res.status(200).json({ ok: true, quotation: updated });
 		} catch (err) {
 			return res.status(500).json({ error: 'Error removing item' });
 		}

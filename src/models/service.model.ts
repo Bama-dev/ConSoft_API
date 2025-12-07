@@ -9,4 +9,8 @@ const ServiceSchema = new Schema(
 	},
 );
 
+// Índices sugeridos para búsquedas
+ServiceSchema.index({ name: 1 });
+ServiceSchema.index({ status: 1 });
+
 export const ServiceModel = model('Servicio', ServiceSchema);

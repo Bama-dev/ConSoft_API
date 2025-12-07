@@ -32,6 +32,10 @@ QuotationSchema.index(
 	{ unique: true, partialFilterExpression: { status: 'carrito' } }
 );
 
+// Índices para listados
+QuotationSchema.index({ user: 1, createdAt: -1 });
+QuotationSchema.index({ status: 1, createdAt: -1 });
+
 export const QuotationModel = model('Cotizacion', QuotationSchema);
 
 

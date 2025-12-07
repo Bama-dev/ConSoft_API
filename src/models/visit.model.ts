@@ -20,4 +20,9 @@ const VisitSchema = new Schema(
 	{ collection: 'visitas' }
 );
 
+// Índices para consultas comunes
+VisitSchema.index({ user: 1, visitDate: -1 });
+VisitSchema.index({ status: 1, visitDate: -1 });
+VisitSchema.index({ services: 1 });
+
 export const VisitModel = model('Visit', VisitSchema);

@@ -33,7 +33,6 @@ export const AuthController = {
 			const payload: any = {
 				id: user._id,
 				email: user.email,
-				role: user.role,
 			};
 
 			const token = generateToken(payload);

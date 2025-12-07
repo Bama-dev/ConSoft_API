@@ -7,6 +7,8 @@ const PermissionSchema = new Schema(
   },
 );
 
+// Evitar duplicados por módulo/acción
+PermissionSchema.index({ module: 1, action: 1 }, { unique: true });
 
 export const PermissionModel = model('Permiso', PermissionSchema);
 

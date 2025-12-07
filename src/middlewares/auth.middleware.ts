@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { Secret } from 'jsonwebtoken';
 import { env } from '../config/env';
+import { UserModel } from '../models/user.model';
 
 export interface AuthRequest extends Request {
 	user?: any;
@@ -27,9 +28,28 @@ export function verifyToken(req: AuthRequest, res: Response, next: NextFunction)
 		}
 
 		const secret: Secret = env.jwt_secret;
-		const decoded = jwt.verify(token, secret);
-
-		req.user = decoded;
+		const decoded = jwt.verify(token, secret) as any;
+		const userId = decoded?.id;
+		if (!userId) {
+			return res.status(403).json({ message: 'Invalid token payload' });
+		}
+		// Cargar usuario fresco con rol y permisos
+		const dbUser = await UserModel.findById(userId)
+			.select('email role')
+			.populate({
+				path: 'role',
+				select: 'name permissions',
+				populate: { path: 'permissions', model: 'Permiso', select: 'module action name' },
+			})
+			.lean();
+		if (!dbUser) {
+			return res.status(401).json({ message: 'User not found' });
+		}
+		req.user = {
+			id: String(userId),
+			email: dbUser.email,
+			role: dbUser.role,
+		};
 		next();
 	} catch (err) {
 		return res.status(403).json({ message: 'Invalid or expired token' });
