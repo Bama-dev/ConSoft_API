@@ -10,4 +10,8 @@ const ProductSchema = new Schema(
 	},
 );
 
+// Índices para listados/filtrado
+ProductSchema.index({ category: 1 });
+ProductSchema.index({ name: 1 });
+
 export const ProductModel = model('Producto', ProductSchema);

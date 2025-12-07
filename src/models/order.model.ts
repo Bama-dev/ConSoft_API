@@ -40,7 +40,9 @@ const OrderSchema = new Schema(
   },
 );
 
-
+// Índices para reportes y listados
+OrderSchema.index({ user: 1, status: 1, startedAt: -1 });
+OrderSchema.index({ status: 1, startedAt: -1 });
 
 export const OrderModel = model('Pedido', OrderSchema);
 

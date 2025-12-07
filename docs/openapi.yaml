@@ -34,14 +34,13 @@ paths:
                 password: { type: string }
       responses:
         '200':
-          description: Login ok (devuelve token y setea cookie httpOnly)
+          description: Login ok (setea cookie httpOnly; no retorna token en body)
           content:
             application/json:
               schema:
                 type: object
                 properties:
                   message: { type: string }
-                  token: { type: string }
   /api/auth/google:
     post:
       summary: Login con Google (idToken)
@@ -56,7 +55,7 @@ paths:
                 idToken: { type: string }
       responses:
         '200':
-          description: Login ok
+          description: Login ok (setea cookie httpOnly; no retorna token en body)
   /api/auth/me:
     get:
       summary: Usuario actual (JWT)
