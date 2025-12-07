@@ -35,7 +35,7 @@ export async function verifyToken(req: AuthRequest, res: Response, next: NextFun
 		}
 		// Cargar usuario fresco con rol y permisos
 		const dbUser = await UserModel.findById(userId)
-			.select('email role')
+			.select('email role address')
 			.populate({
 				path: 'role',
 				select: 'name permissions',
@@ -49,6 +49,7 @@ export async function verifyToken(req: AuthRequest, res: Response, next: NextFun
 			id: String(userId),
 			email: dbUser.email,
 			role: dbUser.role,
+			address: dbUser.address,
 		};
 		next();
 	} catch (err) {
