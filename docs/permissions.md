@@ -16,7 +16,7 @@ Cada permiso se expresa como `modulo.accion` (ej.: `users.view`).
 
 ### users
 - users.view
-- users.create
+- users.create                                                                  
 - users.update
 - users.delete
 
@@ -56,11 +56,8 @@ Cada permiso se expresa como `modulo.accion` (ej.: `users.view`).
 - payments.update
 - payments.delete
 
-### sales
+### sales (solo lectura)
 - sales.view
-- sales.create
-- sales.update
-- sales.delete
 
 ### permissions
 - permissions.view
@@ -68,12 +65,11 @@ Cada permiso se expresa como `modulo.accion` (ej.: `users.view`).
 - permissions.update
 - permissions.delete
 
-### quotations
+### quotations (parcial)
 - quotations.view
-- quotations.create
 - quotations.update
-- quotations.delete
 
-Total esperado: 44 permisos (11 módulos × 4 acciones).
+Total esperado: 39 permisos (9 módulos con CRUD × 4 acciones = 36) + sales.view (1) + quotations.view/update (2).
+
 
 

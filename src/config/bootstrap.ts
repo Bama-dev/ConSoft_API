@@ -30,30 +30,29 @@ export async function ensureCoreData(): Promise<void> {
     (env as any).defaultUserRoleId = String(userRole._id);
   }
 
-  // Ensure base permissions and assign all to Admin
-  const modules = [
-    'roles',
-    'users',
-    'categories',
-    'products',
-    'services',
-    'visits',
-    'orders',
-    'payments',
-    'sales',
-    'permissions',
-    'quotations',
-  ];
-  const actions = ['view', 'create', 'update', 'delete'];
+  // Ensure permissions by module according to real capabilities
+  // - Full CRUD: roles, users, categories, products, services, visits, orders, payments, permissions
+  // - Read-only: sales
+  // - Partial: quotations (view, update)
+  const moduleActions: Record<string, string[]> = {
+    roles: ['view', 'create', 'update', 'delete'],
+    users: ['view', 'create', 'update', 'delete'],
+    categories: ['view', 'create', 'update', 'delete'],
+    products: ['view', 'create', 'update', 'delete'],
+    services: ['view', 'create', 'update', 'delete'],
+    visits: ['view', 'create', 'update', 'delete'],
+    orders: ['view', 'create', 'update', 'delete'],
+    payments: ['view', 'create', 'update', 'delete'],
+    permissions: ['view', 'create', 'update', 'delete'],
+    sales: ['view'],
+    quotations: ['view', 'update'],
+  };
 
   const permIds: string[] = [];
-  for (const module of modules) {
+  for (const [module, actions] of Object.entries(moduleActions)) {
     for (const action of actions) {
-      // Upsert-like: find or create permission
       let perm = await PermissionModel.findOne({ module, action });
-      if (!perm) {
-        perm = await PermissionModel.create({ module, action });
-      }
+      if (!perm) perm = await PermissionModel.create({ module, action });
       permIds.push(String(perm._id));
     }
   }
