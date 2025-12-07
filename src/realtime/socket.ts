@@ -66,6 +66,14 @@ export function initSocket(server: HttpServer) {
 		const user = (socket as any).user as JwtPayload;
 		const joinedRooms = new Set<string>();
 
+		const isUserOnline = (userId: string): boolean => {
+			for (const [, s] of io.sockets.sockets) {
+				const su = (s as any).user as JwtPayload | undefined;
+				if (su && String(su.id) === String(userId)) return true;
+			}
+			return false;
+		};
+
 		const canAccessQuotation = async (quotationId: string): Promise<{ ok: boolean; ownerId?: string; ownerEmail?: string }> => {
 			const quotation = await QuotationModel.findById(quotationId).select('user').populate('user', 'email');
 			if (!quotation) return { ok: false };
@@ -113,25 +121,17 @@ export function initSocket(server: HttpServer) {
 					message: payload.message,
 					sentAt: msg.sentAt,
 				});
-				// Notificaciones por correo:
-				// 1) Si escribe el equipo (no dueño) → avisar al dueño
-				// 2) Si escribe el dueño → avisar al admin (si está configurado)
+				// Notificación por correo al cliente (dueño) solo si NO tiene sesión iniciada (no está online en socket)
 				const linkBase = env.frontendOrigins[0] || 'http://localhost:3000';
 				const link = `${linkBase}/cotizaciones/${payload.quotationId}`;
-				const isOwner = access.ownerId && String(access.ownerId) === String(user.id);
-				if (!isOwner && access.ownerEmail) {
+				const isOwnerSender = access.ownerId && String(access.ownerId) === String(user.id);
+				const ownerOnline = access.ownerId ? isUserOnline(access.ownerId) : false;
+				if (!isOwnerSender && access.ownerEmail && !ownerOnline) {
 					await sendEmail({
 						to: access.ownerEmail,
 						subject: 'Tienes un nuevo mensaje',
 						text: `Tienes un nuevo mensaje en tu cotización. Ingresa aquí: ${link}`,
 						html: `<p>Tienes un nuevo mensaje en tu cotización.</p><p><a href="${link}">Ir a la página</a></p>`,
-					});
-				} else if (isOwner && env.adminNotifyEmail) {
-					await sendEmail({
-						to: env.adminNotifyEmail,
-						subject: 'Tienes un nuevo mensaje',
-						text: `El dueño ya ha respondido tu mensaje. Revisa aquí: ${link}`,
-						html: `<p>El dueño ya ha respondido tu mensaje.</p><p><a href="${link}">Ir a la página</a></p>`,
 					});
 				}
 			} catch (err) {
