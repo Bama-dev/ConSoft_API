@@ -12,7 +12,7 @@ export const QuotationController = {
 		try {
 			const userId = req.user?.id;
 			if (!userId) return res.status(401).json({ message: 'Unauthorized' });
-			const { productId, quantity, color, size, notes } = req.body ?? {};
+			const { productId, quantity, color, size} = req.body ?? {};
 			if (!productId) return res.status(400).json({ message: 'productId is required' });
 			if (quantity != null && (!Number.isFinite(Number(quantity)) || Number(quantity) < 1)) {
 				return res.status(400).json({ message: 'quantity must be a positive number' });
@@ -23,10 +23,12 @@ export const QuotationController = {
 			const quotation = await QuotationModel.create({
 				user: userId,
 				status: 'solicitada',
-				items: [{ product: prod._id, quantity: quantity ?? 1, color, size, notes }],
+				items: [{ product: prod._id, quantity: quantity ?? 1, color, size}],
 			});
-			return res.status(201).json({ ok: true, quotation });
+			const populated = await quotation.populate('items.product').then((doc) => doc.populate('user', 'name email'));
+			return res.status(201).json({ ok: true, quotation: populated });
 		} catch (err) {
+			console.log(err)
 			return res.status(500).json({ error: 'Error creating quick quotation' });
 		}
 	},
@@ -42,7 +44,7 @@ export const QuotationController = {
 				{ user: userId, status: 'carrito' },
 				{ $setOnInsert: { user: userId, status: 'carrito', items: [] } },
 				{ new: true, upsert: true }
-			).populate('items.product');
+			).populate('items.product').populate('user', 'name email');
 			return res.json({ ok: true, cart });
 		} catch (err) {
 			return res.status(500).json({ error: 'Error creating/getting cart' });
@@ -78,9 +80,11 @@ export const QuotationController = {
 					},
 				},
 				{ new: true }
-			).populate('items.product');
+			).populate('items.product').populate('user', 'name email');
 			if (!updated) {
-				return res.status(400).json({ message: 'Cannot modify quotation (not found or not a cart owned by user)' });
+				return res.status(400).json({
+					message: 'Cannot modify quotation (not found or not a cart owned by user)',
+				});
 			}
 			return res.status(201).json({ ok: true, quotation: updated });
 		} catch (err) {
@@ -109,9 +113,11 @@ export const QuotationController = {
 				{ _id: quotationId, user: userId, status: 'carrito', 'items._id': itemId },
 				{ $set: setOps },
 				{ new: true }
-			).populate('items.product');
+			).populate('items.product').populate('user', 'name email');
 			if (!updated) {
-				return res.status(404).json({ message: 'Quotation or item not found, or not a cart' });
+				return res
+					.status(404)
+					.json({ message: 'Quotation or item not found, or not a cart' });
 			}
 			return res.json({ ok: true, quotation: updated });
 		} catch (err) {
@@ -130,7 +136,7 @@ export const QuotationController = {
 				{ _id: quotationId, user: userId, status: 'carrito' },
 				{ $pull: { items: { _id: itemId } } },
 				{ new: true }
-			).populate('items.product');
+			).populate('items.product').populate('user', 'name email');
 			if (!updated) {
 				return res.status(404).json({ message: 'Quotation not found or not a cart' });
 			}
@@ -156,7 +162,7 @@ export const QuotationController = {
 			}
 			quotation.status = 'solicitada';
 			await quotation.save();
-			const populated = await quotation.populate('items.product');
+			const populated = await quotation.populate('items.product').then((doc) => doc.populate('user', 'name email'));
 			return res.json({ ok: true, quotation: populated });
 		} catch (err) {
 			return res.status(500).json({ error: 'Error submitting quotation' });
@@ -167,9 +173,11 @@ export const QuotationController = {
 	adminSetQuote: async (req: AuthRequest, res: Response) => {
 		try {
 			const { id } = req.params;
-			const { totalEstimate, adminNotes } = req.body ?? {};
+			const { totalEstimate, adminNotes, items } = req.body ?? {};
+
 			const quotation = await QuotationModel.findById(id).populate('user', 'email');
 			if (!quotation) return res.status(404).json({ message: 'Quotation not found' });
+
 			if (
 				totalEstimate == null ||
 				!Number.isFinite(Number(totalEstimate)) ||
@@ -179,8 +187,21 @@ export const QuotationController = {
 					.status(400)
 					.json({ message: 'totalEstimate must be a non-negative number' });
 			}
+
 			quotation.totalEstimate = totalEstimate;
 			if (adminNotes != null) quotation.adminNotes = adminNotes;
+
+			// Actualizar cada item con price y adminNotes
+			if (Array.isArray(items)) {
+				quotation.items.forEach((itemDoc) => {
+					const updatedItem = items.find((i: any) => i._id === itemDoc._id.toString());
+					if (updatedItem) {
+						itemDoc.price = Number(updatedItem.price ?? itemDoc.price ?? 0);
+						itemDoc.adminNotes = updatedItem.adminNotes ?? itemDoc.adminNotes ?? '';
+					}
+				});
+			}
+
 			quotation.status = 'cotizada';
 			await quotation.save();
 
@@ -196,8 +217,10 @@ export const QuotationController = {
 					html: `<p>Tu cotización está lista.</p><p><a href="${link}">Ver cotización</a></p>`,
 				});
 			}
+
 			return res.json({ ok: true, quotation });
 		} catch (err) {
+			console.log(err);
 			return res.status(500).json({ error: 'Error setting quote' });
 		}
 	},
@@ -227,20 +250,22 @@ export const QuotationController = {
 					startedAt: { $gte: new Date(Date.now() - 5 * 60 * 1000) }, // últimos 5 minutos
 				});
 				if (!existingOrder) {
-					const total = Number(quotation.totalEstimate ?? 0);
+					const items = (quotation.items ?? []).map((item) => {
+						const price = item.price ?? 0; // precio unitario guardado en la cotización
+						const subtotal = price * item.quantity; // subtotal calculado dinámicamente
+
+						return {
+							detalles: item.adminNotes ?? 'Sin notas del administrador',
+							valor: subtotal, // aquí guardamos subtotal dinámico
+							id_servicio: '68d47cf4da9d98534c933ff9', // o el id que corresponda
+						};
+					});
+
 					await OrderModel.create({
 						user: quotation.user as any,
 						status: 'en_proceso',
 						startedAt: new Date(),
-						items: [
-							{
-								detalles: `Cotización ${
-									quotation.adminNotes ? ' - ' + quotation.adminNotes : ''
-								}`,
-								valor: total > 0 ? total : undefined,
-								id_servicio: "68d47cf4da9d98534c933ff9"
-							},
-						],
+						items,
 					} as any);
 				}
 			} else {
@@ -286,7 +311,8 @@ export const QuotationController = {
 			if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 			const quotations = await QuotationModel.find({ user: userId })
 				.sort({ createdAt: -1 })
-				.populate('items.product');
+				.populate('items.product')
+				.populate('user', 'name email');
 			return res.json({ ok: true, quotations });
 		} catch (err) {
 			return res.status(500).json({ error: 'Error getting quotations' });

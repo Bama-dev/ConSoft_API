@@ -6,7 +6,8 @@ const QuotationItemSchema = new Schema(
 		quantity: { type: Number, required: true, min: 1, default: 1 },
 		color: { type: String, trim: true },
 		size: { type: String, trim: true },
-		notes: { type: String, trim: true },
+		price: { type: Number, required: false }, // precio unitario
+		adminNotes: { type: String, trim: true, default: '' },
 	},
 	{ _id: true }
 );
@@ -20,7 +21,7 @@ const QuotationSchema = new Schema(
 			default: 'carrito',
 		},
 		items: { type: [QuotationItemSchema], default: [] },
-		totalEstimate: { type: Number },
+		totalEstimate: { type: Number }, // suma de todos los items.total
 		adminNotes: { type: String, trim: true },
 	},
 	{ timestamps: true, collection: 'cotizaciones' }
@@ -37,5 +38,3 @@ QuotationSchema.index({ user: 1, createdAt: -1 });
 QuotationSchema.index({ status: 1, createdAt: -1 });
 
 export const QuotationModel = model('Cotizacion', QuotationSchema);
-
-
