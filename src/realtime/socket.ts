@@ -66,6 +66,14 @@ export function initSocket(server: HttpServer) {
 		const user = (socket as any).user as JwtPayload;
 		const joinedRooms = new Set<string>();
 
+		const isUserOnline = (userId: string): boolean => {
+			for (const [, s] of io.sockets.sockets) {
+				const su = (s as any).user as JwtPayload | undefined;
+				if (su && String(su.id) === String(userId)) return true;
+			}
+			return false;
+		};
+
 		const canAccessQuotation = async (quotationId: string): Promise<{ ok: boolean; ownerId?: string; ownerEmail?: string }> => {
 			const quotation = await QuotationModel.findById(quotationId).select('user').populate('user', 'email');
 			if (!quotation) return { ok: false };
@@ -113,15 +121,17 @@ export function initSocket(server: HttpServer) {
 					message: payload.message,
 					sentAt: msg.sentAt,
 				});
-				// Notificación por correo al dueño si quien escribe no es el dueño (p. ej., admin/equipo)
-				if (access.ownerId && String(access.ownerId) !== String(user.id) && access.ownerEmail) {
-					const linkBase = env.frontendOrigins[0] || 'http://localhost:3000';
-					const link = `${linkBase}/cotizaciones/${payload.quotationId}`;
+				// Notificación por correo al cliente (dueño) solo si NO tiene sesión iniciada (no está online en socket)
+				const linkBase = env.frontendOrigins[0] || 'http://localhost:3000';
+				const link = `${linkBase}/cotizaciones/${payload.quotationId}`;
+				const isOwnerSender = access.ownerId && String(access.ownerId) === String(user.id);
+				const ownerOnline = access.ownerId ? isUserOnline(access.ownerId) : false;
+				if (!isOwnerSender && access.ownerEmail && !ownerOnline) {
 					await sendEmail({
 						to: access.ownerEmail,
-						subject: 'Nueva respuesta a tu cotización',
-						text: `Tienes una nueva respuesta de nuestro equipo. Ingresa aquí: ${link}`,
-						html: `<p>Tienes una nueva respuesta de nuestro equipo.</p><p><a href="${link}">Ver cotización</a></p>`,
+						subject: 'Tienes un nuevo mensaje',
+						text: `Tienes un nuevo mensaje en tu cotización. Ingresa aquí: ${link}`,
+						html: `<p>Tienes un nuevo mensaje en tu cotización.</p><p><a href="${link}">Ir a la página</a></p>`,
 					});
 				}
 			} catch (err) {
