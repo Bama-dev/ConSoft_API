@@ -44,7 +44,7 @@ export const AuthController = {
 				maxAge: 1000 * 60 * 60 * 2,
 			});
 
-			res.status(200).json({ message: 'Login successful', token });
+			res.status(200).json({ message: 'Login successful' });
 		} catch (err) {
 			res.status(500).json({ error: 'Error during login' });
 		}
@@ -87,7 +87,7 @@ export const AuthController = {
 				maxAge: 1000 * 60 * 60 * 2,
 			});
 
-			return res.status(200).json({ message: 'Login successful', token });
+			return res.status(200).json({ message: 'Login successful' });
 		} catch (err) {
 			return res.status(500).json({ error: 'Error during Google login' });
 		}

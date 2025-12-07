@@ -3,21 +3,21 @@
 Base URL prod: `https://consoft-api.onrender.com`
 Base URL local: `http://localhost:3000` (ajusta PORT si es distinto)
 
-Autenticación: cookie httpOnly `token` (se setea al hacer login) o header `Authorization: Bearer <token>`. El login también retorna el `token` en el body.
+Autenticación: cookie httpOnly `token` (se setea al hacer login). No se retorna el token en el body ni se expone en respuestas.
 
 ### Auth
 - POST {{BASE}}/api/auth/login
   - Body JSON: `{ "email": "admin@test.com", "password": "Secret123!" }`
-  - Respuesta: `200 { "message": "Login successful", "token": "..." }`
+  - Respuesta: `200 { "message": "Login successful" }` (Set-Cookie: token; httpOnly)
   - Guarda cookie `token` automáticamente en Postman (habilita cookie jar).
 
 - POST {{BASE}}/api/auth/google
   - Body JSON: `{ "idToken": "<ID_TOKEN_DE_GOOGLE>" }`
-  - Respuesta: `200 { message: "Login successful" }`
+  - Respuesta: `200 { "message": "Login successful" }` (Set-Cookie: token; httpOnly)
   - Requiere `GOOGLE_CLIENT_ID` configurado en el backend.
 
 - GET {{BASE}}/api/auth/me
-  - Requiere cookie `token`.
+  - Requiere cookie `token` (httpOnly).
 
 - POST {{BASE}}/api/auth/logout
   - Limpia cookie.
@@ -94,5 +94,6 @@ Autenticación: cookie httpOnly `token` (se setea al hacer login) o header `Auth
 ### Notas
 - Producción: cookies requieren `SameSite=None; Secure` (usa HTTPS en Postman para prod).
 - Si proteges rutas con auth, asegúrate de que Postman envíe la cookie.
+- No se expone token en las respuestas, solo por cookie httpOnly.
 
 

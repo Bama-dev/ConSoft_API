@@ -9,10 +9,10 @@ Esta guía resume cómo autenticarte, consumir endpoints y usar el chat en tiemp
 ### Autenticación
 - Soportadas dos modalidades:
   - Cookie httpOnly (web): el backend setea `token` en cookie.
-  - Bearer token (móvil): el backend devuelve `{ token }` en login y puedes enviarlo en el header.
+ - Cookie httpOnly (móvil/web): el backend setea `token` en cookie; no retorna token en el body.
 
 Endpoints
-- POST `/api/auth/login` → body: `{ email, password }` → response: `{ message, token }` y set-cookie `token`.
+- POST `/api/auth/login` → body: `{ email, password }` → response: `{ message }` y Set-Cookie `token` (httpOnly).
 - GET `/api/auth/me` → requiere autenticación (cookie o Bearer).
 - POST `/api/auth/logout` → limpia cookie (en Bearer, descarta el token del lado del cliente).
 - Registro público: POST `/api/users` → `{ name, email, password }` (asigna rol por defecto).
@@ -27,17 +27,15 @@ async function login(email, password) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
+    credentials: 'include', // para enviar/recibir cookies
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data?.error || data?.message || 'Login failed');
-  const token = data.token; // Guarda en almacenamiento seguro (SecureStore/Keychain)
-  return token;
+  return true; // cookie httpOnly queda guardada por el cliente (según plataforma)
 }
 
-async function fetchMe(token) {
-  const res = await fetch(`${API}/api/auth/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+async function fetchMe() {
+  const res = await fetch(`${API}/api/auth/me`, { credentials: 'include' });
   return await res.json();
 }
 ```
@@ -193,10 +191,10 @@ function sendMessage(quotationId, message) {
 - Errores: 400 (validación), 401 (no autenticado), 403 (sin permisos), 404 (no encontrado), 500 (servidor).
 
 ### Buenas prácticas en RN
-- Guarda el token de forma segura (SecureStore, Keychain o similar).
-- Envía `Authorization: Bearer <token>` en cada request autenticada.
-- Gestiona expiración del token (401 → refrescar login o redirigir al flow de auth).
-- En Socket.IO, reintenta conexión si el token cambia (`socket.auth = { token } ; socket.connect()`).
+- Usa una librería de manejo de cookies (ej. `react-native-cookies`) para gestionar cookies httpOnly si tu runtime no lo hace automáticamente.
+- En caso de usar WebView, asegúrate que comparte cookies con el contexto nativo.
+- Gestiona expiración (401 → re-login).
+- Para Socket.IO en RN, sigue autenticando por `auth: { token }` si tu app obtiene el token por otros medios seguros. El backend no lo expone en el body de login.
 
 ### Referencias
 - Endpoints detallados: `docs/api-endpoints.md`
