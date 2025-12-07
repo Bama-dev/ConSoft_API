@@ -113,15 +113,25 @@ export function initSocket(server: HttpServer) {
 					message: payload.message,
 					sentAt: msg.sentAt,
 				});
-				// Notificación por correo al dueño si quien escribe no es el dueño (p. ej., admin/equipo)
-				if (access.ownerId && String(access.ownerId) !== String(user.id) && access.ownerEmail) {
-					const linkBase = env.frontendOrigins[0] || 'http://localhost:3000';
-					const link = `${linkBase}/cotizaciones/${payload.quotationId}`;
+				// Notificaciones por correo:
+				// 1) Si escribe el equipo (no dueño) → avisar al dueño
+				// 2) Si escribe el dueño → avisar al admin (si está configurado)
+				const linkBase = env.frontendOrigins[0] || 'http://localhost:3000';
+				const link = `${linkBase}/cotizaciones/${payload.quotationId}`;
+				const isOwner = access.ownerId && String(access.ownerId) === String(user.id);
+				if (!isOwner && access.ownerEmail) {
 					await sendEmail({
 						to: access.ownerEmail,
-						subject: 'Nueva respuesta a tu cotización',
-						text: `Tienes una nueva respuesta de nuestro equipo. Ingresa aquí: ${link}`,
-						html: `<p>Tienes una nueva respuesta de nuestro equipo.</p><p><a href="${link}">Ver cotización</a></p>`,
+						subject: 'Tienes un nuevo mensaje',
+						text: `Tienes un nuevo mensaje en tu cotización. Ingresa aquí: ${link}`,
+						html: `<p>Tienes un nuevo mensaje en tu cotización.</p><p><a href="${link}">Ir a la página</a></p>`,
+					});
+				} else if (isOwner && env.adminNotifyEmail) {
+					await sendEmail({
+						to: env.adminNotifyEmail,
+						subject: 'Tienes un nuevo mensaje',
+						text: `El dueño ya ha respondido tu mensaje. Revisa aquí: ${link}`,
+						html: `<p>El dueño ya ha respondido tu mensaje.</p><p><a href="${link}">Ir a la página</a></p>`,
 					});
 				}
 			} catch (err) {
