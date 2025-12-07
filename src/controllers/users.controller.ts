@@ -82,9 +82,36 @@ export const UserController = {
   },
   update: async (req: Request, res: Response) => {
     try {
-      // Evitar escalada de privilegios: ignorar cambios de "role" por este endpoint
-      const { role, ...rest } = req.body ?? {};
-      const updated = await UserModel.findByIdAndUpdate(req.params.id, rest, { new: true })
+      const userId = req.params.id;
+      const { password, role, email, ...rest } = req.body ?? {};
+
+      // Este endpoint NO permite cambiar la contraseña
+      if (password != null) {
+        return res.status(400).json({ message: "Password cannot be changed via this endpoint" });
+      }
+
+      // Validar unicidad de email si se actualiza
+      if (email != null) {
+        const existing = await UserModel.findOne({ email, _id: { $ne: userId } }).select("_id");
+        if (existing) {
+          return res.status(400).json({ message: "This email is already in use" });
+        }
+      }
+
+      // Construir objeto de actualización permitido
+      const updateDoc: any = { ...rest };
+      if (email != null) updateDoc.email = email;
+
+      // Permitir cambio de rol (admin ya está controlado por permisos en la ruta)
+      if (role != null) {
+        const roleExists = await RoleModel.findById(role).select("_id");
+        if (!roleExists) {
+          return res.status(400).json({ message: "Invalid role id" });
+        }
+        updateDoc.role = role;
+      }
+
+      const updated = await UserModel.findByIdAndUpdate(userId, updateDoc, { new: true })
         .select("-password -__v")
         .populate({ path: "role", select: "name description" });
       if (!updated) return res.status(404).json({ message: "Not found" });
