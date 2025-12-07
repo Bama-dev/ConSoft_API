@@ -180,5 +180,44 @@ create('pedidos', {
   },
 });
 
+// === Nuevas colecciones para cotizaciones y chat ===
+create('cotizaciones', {
+  bsonType: 'object',
+  required: ['user', 'status', 'items'],
+  properties: {
+    user: { bsonType: 'objectId' },
+    status: { bsonType: 'string', enum: ['carrito', 'solicitada', 'en_proceso', 'cotizada', 'cerrada'] },
+    items: {
+      bsonType: 'array',
+      items: {
+        bsonType: 'object',
+        required: ['product', 'quantity'],
+        properties: {
+          product: { bsonType: 'objectId' },
+          quantity: { bsonType: ['int', 'long', 'double'] },
+          color: { bsonType: ['string', 'null'] },
+          size: { bsonType: ['string', 'null'] },
+          notes: { bsonType: ['string', 'null'] },
+        },
+      },
+    },
+    totalEstimate: { bsonType: ['double', 'int', 'long', 'null'] },
+    adminNotes: { bsonType: ['string', 'null'] },
+    createdAt: { bsonType: ['date', 'null'] },
+    updatedAt: { bsonType: ['date', 'null'] },
+  },
+});
+
+create('cotizacion_mensajes', {
+  bsonType: 'object',
+  required: ['quotation', 'sender', 'message'],
+  properties: {
+    quotation: { bsonType: 'objectId' },
+    sender: { bsonType: 'objectId' },
+    message: { bsonType: 'string' },
+    sentAt: { bsonType: ['date', 'null'] },
+  },
+});
+
 print('Done.');
 

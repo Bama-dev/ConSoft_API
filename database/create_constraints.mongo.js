@@ -14,5 +14,9 @@ db.categorias.createIndex({ name: 1 }, { name: 'category_name_idx' });
 db.productos.createIndex({ category: 1 }, { name: 'product_category_idx' });
 db.visitas.createIndex({ user: 1, scheduledAt: -1 }, { name: 'visit_user_date_idx' });
 
+// Cotizaciones y chat
+db.cotizaciones.createIndex({ user: 1, createdAt: -1 }, { name: 'quotation_user_created_idx' });
+db.cotizacion_mensajes.createIndex({ quotation: 1, sentAt: 1 }, { name: 'qmsg_quotation_sent_idx' });
+
 print('Indexes created.');
 

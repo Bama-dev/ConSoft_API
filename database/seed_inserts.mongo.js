@@ -21,6 +21,9 @@ const permNames = [
   'catalog.write',
   'orders.read',
   'orders.write',
+  'quotations.view',
+  'quotations.update',
+  'quotations.write',
 ];
 const permIds = permNames.map((p) => upsertByName('permisos', { name: p, description: '' }));
 

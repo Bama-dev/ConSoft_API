@@ -19,7 +19,7 @@ function readBearerToken(req: Request): string | null {
 	}
 }
 
-export function verifyToken(req: AuthRequest, res: Response, next: NextFunction) {
+export async function verifyToken(req: AuthRequest, res: Response, next: NextFunction) {
 	try {
 		const token = req.cookies?.token || readBearerToken(req);
 

@@ -94,5 +94,88 @@ node -r ts-node/register database/seed.ts
 
 - Endpoints de la API: `docs/api-endpoints.md`
 - Módulo de Cotizaciones: `docs/quotations.md`
+- Integración móvil (React Native): `docs/mobile-integration.md`
+
+---
+
+## 🔐 Autenticación y permisos
+
+- Autenticación soporta dos modalidades:
+  - Cookie httpOnly (web tradicional)
+  - Bearer token en header `Authorization: Bearer <token>` (móvil). El login devuelve `{ token }`.
+- Rutas protegidas usan JWT más permisos por módulo/acción con `verifyRole(module, action)`.
+- Permisos para cotizaciones incluidos en los seeds: `quotations.view`, `quotations.update`, `quotations.write`.
+
+---
+
+## 💬 Chat en tiempo real por cotización
+
+- Cada cotización tiene su sala: `q:<quotationId>`.
+- Eventos:
+  - `quotation:join` → `{ quotationId }`
+  - `chat:message` → `{ quotationId, message }`
+- Seguridad: solo el dueño de la cotización o usuarios con permisos de cotizaciones (admin) pueden unirse y enviar.
+- Historial REST: `GET /api/quotations/:quotationId/messages`
+- Autenticación socket:
+  - Web: puede leer la cookie httpOnly
+  - Móvil: enviar `auth: { token }` en el handshake
+
+---
+
+## 🧾 Flujo de cotización y pedido
+
+- Cotizar un producto (rápido): `POST /api/quotations/quick`
+- Carrito de cotización (varios productos): `POST /api/quotations/cart` → agregar ítems → `POST /api/quotations/:id/submit`
+- El administrador fija precio: `POST /api/quotations/:id/quote` (requiere permisos)
+- El usuario acepta/rechaza: `POST /api/quotations/:id/decision`
+- Si el usuario acepta, el sistema crea automáticamente un `Pedido` en estado `en_proceso` con un ítem resumen por el total estimado de la cotización.
+
+---
+
+## ✉️ Notificaciones por correo (opcional)
+
+- Variables de entorno SMTP (si no se configuran, se hace no-op y no falla):
+  - `MAIL_SMTP_HOST`, `MAIL_SMTP_PORT`, `MAIL_SMTP_USER`, `MAIL_SMTP_PASS`, `MAIL_FROM`, `ADMIN_NOTIFY_EMAIL`
+- Correos automáticos:
+  - Al fijar el precio de una cotización (al cliente)
+  - Cuando el cliente acepta/rechaza (al admin)
+  - En el chat: si responde un tercero (admin), se avisa al dueño
+
+---
+
+## 🌐 CORS y orígenes frontend
+
+- Configurar `FRONTEND_ORIGINS` (separados por coma) para permitir los orígenes de frontend/web y móvil (si usan WebView).
+- Ejemplo:
+  - `FRONTEND_ORIGINS=http://localhost:3000,http://localhost:5173`
+
+---
+
+## 🗄️ Scripts de base de datos actualizados
+
+- Validadores y colecciones nuevas:
+  - `cotizaciones`, `cotizacion_mensajes`
+- Índices:
+  - Cotizaciones por usuario y fecha (`quotation_user_created_idx`)
+  - Mensajes por cotización y fecha (`qmsg_quotation_sent_idx`)
+- Permisos agregados en seeds:
+  - `quotations.view`, `quotations.update`, `quotations.write`
+
+---
+
+## 🧪 Pruebas
+
+- Ejecutar:
+  ```bash
+  npm ci
+  npm test
+  ```
+- Se usa `mongodb-memory-server` para pruebas sin necesidad de una base real.
+
+---
+
+## 📑 OpenAPI / Swagger
+
+- Especificación base disponible en `docs/openapi.yaml` con los endpoints principales y esquema de seguridad `bearerAuth`.
 
 

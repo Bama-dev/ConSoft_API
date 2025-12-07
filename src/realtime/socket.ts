@@ -32,7 +32,7 @@ export function initSocket(server: HttpServer) {
 		return null;
 	}
 
-	io.use((socket, next) => {
+	io.use(async (socket, next) => {
 		try {
 			const token =
 				(socket.handshake.auth as any)?.token ||
@@ -40,7 +40,22 @@ export function initSocket(server: HttpServer) {
 				readTokenFromCookie(socket.handshake.headers?.cookie as string | undefined);
 			if (!token) return next(new Error('Unauthorized'));
 			const decoded = jwt.verify(token, env.jwt_secret) as JwtPayload;
-			(socket as any).user = decoded;
+			if (!decoded?.id) return next(new Error('Unauthorized'));
+			// Cargar usuario con rol y permisos frescos
+			const dbUser = await UserModel.findById(decoded.id)
+				.select('email role')
+				.populate({
+					path: 'role',
+					select: 'name permissions',
+					populate: { path: 'permissions', model: 'Permiso', select: 'module action name' },
+				})
+				.lean();
+			if (!dbUser) return next(new Error('Unauthorized'));
+			(socket as any).user = {
+				id: String(decoded.id),
+				email: dbUser.email,
+				role: dbUser.role,
+			};
 			return next();
 		} catch (err) {
 			return next(new Error('Unauthorized'));
@@ -60,7 +75,7 @@ export function initSocket(server: HttpServer) {
 			const perms = (user.role?.permissions as any[]) || [];
 			const hasAdminPerm = perms.some((perm: any) => {
 				if (typeof perm?.name === 'string') {
-					return perm.name === 'quotations.view' || perm.name === 'quotations.write';
+					return perm.name === 'quotations.view' || perm.name === 'quotations.write' || perm.name === 'quotations.update';
 				}
 				if (typeof perm?.module === 'string' && typeof perm?.action === 'string') {
 					return perm.module === 'quotations' && (perm.action === 'view' || perm.action === 'write' || perm.action === 'update');

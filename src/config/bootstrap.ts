@@ -30,22 +30,20 @@ export async function ensureCoreData(): Promise<void> {
     (env as any).defaultUserRoleId = String(userRole._id);
   }
 
-  // Ensure permissions by module according to real capabilities
-  // - Full CRUD: roles, users, categories, products, services, visits, orders, payments, permissions
-  // - Read-only: sales
-  // - Partial: quotations (view, update)
+  // Ensure permissions by module (25 total):
+  // - Full CRUD (5 x 4 = 20): roles, users, categories, products, services
+  // - Partial: quotations (view, update) = 2
+  // - Read-only: sales.view (1), permissions.view (1), visits.view (1)
   const moduleActions: Record<string, string[]> = {
     roles: ['view', 'create', 'update', 'delete'],
     users: ['view', 'create', 'update', 'delete'],
     categories: ['view', 'create', 'update', 'delete'],
     products: ['view', 'create', 'update', 'delete'],
     services: ['view', 'create', 'update', 'delete'],
-    visits: ['view', 'create', 'update', 'delete'],
-    orders: ['view', 'create', 'update', 'delete'],
-    payments: ['view', 'create', 'update', 'delete'],
-    permissions: ['view', 'create', 'update', 'delete'],
-    sales: ['view'],
     quotations: ['view', 'update'],
+    sales: ['view'],
+    permissions: ['view'],
+    visits: ['view'],
   };
 
   const permIds: string[] = [];
