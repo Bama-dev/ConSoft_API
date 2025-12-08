@@ -11,7 +11,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => ({
-    folder: "products",
+    folder: "ConSoft",
     resource_type: "image",
   }),
 });
