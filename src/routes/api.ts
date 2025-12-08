@@ -14,6 +14,7 @@ import { verifyToken } from '../middlewares/auth.middleware';
 import { verifyRole } from '../middlewares/verifyRole';
 import { QuotationController } from '../controllers/quotation.controller';
 import { ChatController } from '../controllers/chat.controller';
+import { upload } from '../utils/cloudinary';
 
 const router = Router();
 
@@ -32,6 +33,7 @@ router.post('/auth/login', AuthController.login);
 router.post('/auth/logout', AuthController.logout);
 router.get('/auth/me', verifyToken, AuthController.me);
 router.post('/auth/google', AuthController.google);
+router.post('/auth/profile', verifyToken, AuthController.profile);
 // Registro público de usuarios (para permitir sign-up y tests)
 router.post('/users', UserController.create);
 
@@ -40,9 +42,13 @@ router.post('/users', UserController.create);
 if (CategoryControlleer.list) router.get('/categories', CategoryControlleer.list);
 if (CategoryControlleer.get) router.get('/categories/:id', CategoryControlleer.get);
 if (ProductController.list) router.get('/products', ProductController.list);
+if (ProductController.create)
+	router.post('/products', upload.single('image'), ProductController.create);
 if (ProductController.get) router.get('/products/:id', ProductController.get);
 if (ServiceController.list) router.get('/services', ServiceController.list);
 if (ServiceController.get) router.get('/services/:id', ServiceController.get);
+if (ServiceController.create)
+	router.post('/services', upload.single('image'), ServiceController.create);
 
 // === RUTAS PROTEGIDAS === //
 router.use(verifyToken);
@@ -66,7 +72,11 @@ router.post('/quotations/:id/items', QuotationController.addItem);
 router.put('/quotations/:id/items/:itemId', QuotationController.updateItem);
 router.delete('/quotations/:id/items/:itemId', QuotationController.removeItem);
 router.post('/quotations/:id/submit', QuotationController.submit);
-router.post('/quotations/:id/quote', verifyRole('quotations', 'update'), QuotationController.adminSetQuote);
+router.post(
+	'/quotations/:id/quote',
+	verifyRole('quotations', 'update'),
+	QuotationController.adminSetQuote
+);
 router.post('/quotations/:id/decision', QuotationController.userDecision);
 router.get('/quotations', verifyRole('quotations', 'view'), QuotationController.listAll);
 router.get('/quotations/:id', QuotationController.get);
