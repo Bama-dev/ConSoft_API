@@ -5,6 +5,7 @@ import { Response } from 'express';
 import { hash } from 'bcrypt';
 import { env } from '../config/env';
 import { RoleModel } from '../models/role.model';
+import { generateToken } from '../utils/jwt';
 
 const base = createCrudController(UserModel);
 
@@ -47,7 +48,7 @@ export const UserController = {
 			const hashedPass = await hash(password, 10);
 
 			// 🔥 ASIGNACIÓN FIJA DEL ROL
-			const DEFAULT_ROLE_ID = 'ID_DEL_ROL_USUARIO_REAL_AQUÍ';
+			const DEFAULT_ROLE_ID = '693784c6753b94da92239f4f';
 
 			const newUser = await UserModel.create({
 				name,
@@ -55,6 +56,22 @@ export const UserController = {
 				password: hashedPass,
 				role: DEFAULT_ROLE_ID,
 			});
+
+      const payload: any = {
+              id: newUser._id,
+              email: newUser.email,
+              address: newUser.address,
+            };
+      
+            const token = generateToken(payload);
+      
+            res.cookie('token', token, {
+              httpOnly: true,
+              secure: env.nodeEnv === 'production',
+              sameSite: env.nodeEnv === 'production' ? 'none' : 'lax',
+              maxAge: 1000 * 60 * 60 * 2,
+            });
+      
 
 			return res.json({ message: 'User registered successfully' });
 		} catch (err) {
