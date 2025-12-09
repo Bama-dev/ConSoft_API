@@ -178,4 +178,15 @@ node -r ts-node/register database/seed.ts
 
 - Especificación base disponible en `docs/openapi.yaml` con los endpoints principales y esquema de seguridad `bearerAuth`.
 
+---
+
+## 🔧 Configuración de entorno (.env)
+
+- Copia `docs/env.example` a `.env` y completa los valores:
+  - Base de datos: `MONGO_URI`
+  - JWT: `JWT_SECRET`
+  - CORS: `FRONTEND_ORIGINS` (coma separada)
+  - SMTP (para correos): `MAIL_SMTP_HOST`, `MAIL_SMTP_PORT` (587 por defecto), `MAIL_SMTP_USER`, `MAIL_SMTP_PASS`, `MAIL_FROM`, `ADMIN_NOTIFY_EMAIL`
+- Reinicia el servidor después de modificar `.env`.
+
 
