@@ -57,21 +57,20 @@ export const UserController = {
 				role: DEFAULT_ROLE_ID,
 			});
 
-      const payload: any = {
-              id: newUser._id,
-              email: newUser.email,
-              address: newUser.address,
-            };
-      
-            const token = generateToken(payload);
-      
-            res.cookie('token', token, {
-              httpOnly: true,
-              secure: env.nodeEnv === 'production',
-              sameSite: env.nodeEnv === 'production' ? 'none' : 'lax',
-              maxAge: 1000 * 60 * 60 * 2,
-            });
-      
+			const payload: any = {
+				id: newUser._id,
+				email: newUser.email,
+				address: newUser.address,
+			};
+
+			const token = generateToken(payload);
+
+			res.cookie('token', token, {
+				httpOnly: true,
+				secure: env.nodeEnv === 'production',
+				sameSite: env.nodeEnv === 'production' ? 'none' : 'lax',
+				maxAge: 1000 * 60 * 60 * 2,
+			});
 
 			return res.json({ message: 'User registered successfully' });
 		} catch (err) {
@@ -114,6 +113,9 @@ export const UserController = {
 				}
 				updateDoc.role = role;
 			}
+
+			const imageUrl = req.file?.path || null;
+			if (imageUrl) updateDoc.profile_picture = imageUrl;
 
 			const updated = await UserModel.findByIdAndUpdate(userId, updateDoc, { new: true })
 				.select('-password -__v')
