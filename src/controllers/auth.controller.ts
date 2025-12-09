@@ -6,6 +6,8 @@ import { env } from '../config/env';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { OAuth2Client } from 'google-auth-library';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+import { sendEmail } from '../utils/mailer';
 
 export const AuthController = {
 	login: async (req: Request, res: Response) => {
@@ -93,7 +95,7 @@ export const AuthController = {
 		}
 	},
 
-	logout: async (req: Request, res: Response) => {
+	logout: async (_req: Request, res: Response) => {
 		try {
 			res.clearCookie('token', {
 				httpOnly: true,
@@ -110,7 +112,6 @@ export const AuthController = {
 		if (!req.user) {
 			return res.status(401).json({ message: 'Unauthorized' });
 		}
-
 		res.status(200).json(req.user);
 	},
 
@@ -123,8 +124,88 @@ export const AuthController = {
 		if (!userInfo) {
 			return res.status(404).json({ ok: false, message: 'User not found' });
 		}
-
 		const { password, favorites, registeredAt, role, ...safeUser } = userInfo.toObject();
 		res.status(200).json({ ok: true, user: safeUser });
+	},
+
+	changePassword: async (req: AuthRequest, res: Response) => {
+		try {
+			const userId = req.user?.id;
+			if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+			const { currentPassword, newPassword } = req.body ?? {};
+			if (!currentPassword || !newPassword) {
+				return res.status(400).json({ message: 'currentPassword and newPassword are required' });
+			}
+			const hasUppercase = typeof newPassword === 'string' && /[A-Z]/.test(newPassword);
+			const hasNumber = typeof newPassword === 'string' && /\d/.test(newPassword);
+			const hasSpecial = typeof newPassword === 'string' && /[^A-Za-z0-9]/.test(newPassword);
+			if (!hasUppercase || !hasNumber || !hasSpecial) {
+				return res.status(400).json({
+					message:
+						'Password must include at least one uppercase letter, one number, and one special character',
+				});
+			}
+			const user = await UserModel.findById(userId).select('password');
+			if (!user) return res.status(404).json({ message: 'User not found' });
+			const ok = await compare(currentPassword, user.password);
+			if (!ok) return res.status(400).json({ message: 'Current password is incorrect' });
+			const hashed = await hash(newPassword, 10);
+			user.password = hashed as any;
+			await user.save();
+			return res.json({ ok: true, message: 'Password updated' });
+		} catch (_e) {
+			return res.status(500).json({ error: 'Error changing password' });
+		}
+	},
+
+	forgotPassword: async (req: Request, res: Response) => {
+		try {
+			const { email } = req.body ?? {};
+			if (!email) return res.status(400).json({ message: 'email is required' });
+			const user = await UserModel.findOne({ email }).select('_id email');
+			if (!user) return res.json({ ok: true }); // no filtrar usuarios
+			const token = jwt.sign({ id: String(user._id), purpose: 'reset' }, env.jwt_secret, {
+				expiresIn: '30m',
+			});
+			const linkBase = env.frontendOrigins[0] || 'http://localhost:3000';
+			const link = `${linkBase}/reset-password?token=${encodeURIComponent(token)}`;
+			await sendEmail({
+				to: user.email,
+				subject: 'Recuperar contraseña',
+				text: `Para restablecer tu contraseña, abre este enlace: ${link}`,
+				html: `<p>Para restablecer tu contraseña, abre este enlace:</p><p><a href="${link}">Restablecer contraseña</a></p>`,
+			});
+			return res.json({ ok: true });
+		} catch (_e) {
+			return res.status(500).json({ error: 'Error starting password recovery' });
+		}
+	},
+
+	resetPassword: async (req: Request, res: Response) => {
+		try {
+			const { token, newPassword } = req.body ?? {};
+			if (!token || !newPassword) return res.status(400).json({ message: 'token and newPassword are required' });
+			const hasUppercase = typeof newPassword === 'string' && /[A-Z]/.test(newPassword);
+			const hasNumber = typeof newPassword === 'string' && /\d/.test(newPassword);
+			const hasSpecial = typeof newPassword === 'string' && /[^A-Za-z0-9]/.test(newPassword);
+			if (!hasUppercase || !hasNumber || !hasSpecial) {
+				return res.status(400).json({
+					message:
+						'Password must include at least one uppercase letter, one number, and one special character',
+				});
+			}
+			const decoded = jwt.verify(token, env.jwt_secret) as any;
+			if (!decoded?.id || decoded?.purpose !== 'reset') {
+				return res.status(400).json({ message: 'Invalid token' });
+			}
+			const user = await UserModel.findById(decoded.id).select('_id password');
+			if (!user) return res.status(404).json({ message: 'User not found' });
+			const hashed = await hash(newPassword, 10);
+			user.password = hashed as any;
+			await user.save();
+			return res.json({ ok: true, message: 'Password reset successfully' });
+		} catch (_e) {
+			return res.status(400).json({ error: 'Invalid or expired token' });
+		}
 	},
 };

@@ -34,6 +34,9 @@ router.post('/auth/logout', AuthController.logout);
 router.get('/auth/me', verifyToken, AuthController.me);
 router.post('/auth/google', AuthController.google);
 router.post('/auth/profile', verifyToken, AuthController.profile);
+// Recuperación de contraseña (público)
+router.post('/auth/forgot-password', AuthController.forgotPassword);
+router.post('/auth/reset-password', AuthController.resetPassword);
 // Registro público de usuarios (para permitir sign-up y tests)
 router.post('/users', UserController.create);
 
@@ -48,6 +51,8 @@ if (ServiceController.get) router.get('/services/:id', ServiceController.get);
 
 // === RUTAS PROTEGIDAS === //
 router.use(verifyToken);
+// Cambio de contraseña (autenticado)
+router.post('/auth/change-password', AuthController.changePassword);
 if (ProductController.create)
 	router.post('/products', upload.single('image'), ProductController.create);
 if (ServiceController.create)
