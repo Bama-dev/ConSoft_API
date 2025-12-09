@@ -42,16 +42,17 @@ router.post('/users', UserController.create);
 if (CategoryControlleer.list) router.get('/categories', CategoryControlleer.list);
 if (CategoryControlleer.get) router.get('/categories/:id', CategoryControlleer.get);
 if (ProductController.list) router.get('/products', ProductController.list);
-if (ProductController.create)
-	router.post('/products', upload.single('image'), ProductController.create);
 if (ProductController.get) router.get('/products/:id', ProductController.get);
 if (ServiceController.list) router.get('/services', ServiceController.list);
 if (ServiceController.get) router.get('/services/:id', ServiceController.get);
-if (ServiceController.create)
-	router.post('/services', upload.single('image'), ServiceController.create);
 
 // === RUTAS PROTEGIDAS === //
 router.use(verifyToken);
+if (ProductController.create)
+	router.post('/products', upload.single('image'), ProductController.create);
+if (ServiceController.create)
+	router.post('/services', upload.single('image'), ServiceController.create);
+if (UserController.update) router.put('/users/:id', upload.single('profile_picture'), UserController.update);
 
 mountCrud('roles', RoleController);
 mountCrud('users', UserController);
