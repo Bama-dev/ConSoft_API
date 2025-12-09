@@ -65,6 +65,8 @@ mountCrud('categories', CategoryControlleer);
 mountCrud('products', ProductController);
 mountCrud('services', ServiceController);
 mountCrud('visits', VisitController);
+// Pedidos del usuario autenticado (sin necesidad de permiso de admin)
+router.get('/orders/mine', OrderController.listMine);
 mountCrud('orders', OrderController);
 mountCrud('payments', PaymentController);
 mountCrud('sales', SaleController);

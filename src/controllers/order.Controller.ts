@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { OrderModel } from '../models/order.model';
 import { createCrudController } from './crud.controller';
+import { AuthRequest } from '../middlewares/auth.middleware';
 
 const base = createCrudController(OrderModel);
 
@@ -29,7 +30,7 @@ export const OrderController = {
 				.populate('payments')
 				.populate('items.id_servicio');
 
-			const result = orders
+      const result = orders
 				.map((order) => {
 					const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
 					const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
@@ -49,4 +50,33 @@ export const OrderController = {
 			res.status(500).json({ message: 'Error retrieving orders' });
 		}
 	},
+  // Lista de pedidos del usuario autenticado
+  listMine: async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+      const orders = await OrderModel.find({ user: userId })
+        .populate('user', '-password -__v ')
+        .populate('payments')
+        .populate('items.id_servicio')
+        .sort({ startedAt: -1 });
+
+      const result = orders.map((order) => {
+        const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
+        const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const restante = total - paid;
+        return {
+          ...order.toObject(),
+          total,
+          paid,
+          restante,
+          paymentStatus: restante <= 0 ? 'Pagado' : 'Pendiente',
+        };
+      });
+
+      return res.json({ ok: true, orders: result });
+    } catch (error) {
+      return res.status(500).json({ error: 'Error retrieving my orders' });
+    }
+  },
 };
