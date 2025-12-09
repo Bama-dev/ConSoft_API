@@ -1,123 +1,129 @@
-import { Request } from "express";
-import { UserModel } from "../models/user.model";
-import { createCrudController } from "./crud.controller";
-import { Response } from "express";
-import { hash } from "bcrypt";
-import { env } from "../config/env";
-import { RoleModel } from "../models/role.model";
+import { Request } from 'express';
+import { UserModel } from '../models/user.model';
+import { createCrudController } from './crud.controller';
+import { Response } from 'express';
+import { hash } from 'bcrypt';
+import { env } from '../config/env';
+import { RoleModel } from '../models/role.model';
+import { generateToken } from '../utils/jwt';
 
 const base = createCrudController(UserModel);
 
 export const UserController = {
-  ...base,
-  list: async (req: Request, res: Response) => {
-    try {
-      const users = await UserModel.find().select("-password -__v").populate({
-        path: "role",
-        select: "name description",
-      });
+	...base,
+	list: async (req: Request, res: Response) => {
+		try {
+			const users = await UserModel.find().select('-password -__v').populate({
+				path: 'role',
+				select: 'name description',
+			});
 
-      res.status(200).json({ ok: true, users });
-    } catch (err) {
-      res.status(500).json({ error: "Error during fetching users" });
-    }
-  },
-  create: async (req: Request, res: Response) => {
-    try {
-      const {
-        name,
-        email,
-        password,
-      } = req.body;
+			res.status(200).json({ ok: true, users });
+		} catch (err) {
+			res.status(500).json({ error: 'Error during fetching users' });
+		}
+	},
+	create: async (req: Request, res: Response) => {
+		try {
+			const { name, email, password } = req.body;
 
-      // Password complexity: require at least one uppercase, one number, and one special character
-      const hasUppercase = typeof password === 'string' && /[A-Z]/.test(password);
-      const hasNumber = typeof password === 'string' && /\d/.test(password);
-      const hasSpecial = typeof password === 'string' && /[^A-Za-z0-9]/.test(password);
-      if (!password || !hasUppercase || !hasNumber || !hasSpecial) {
-        return res.status(400).json({
-          message: "Password must include at least one uppercase letter, one number, and one special character",
-        });
-      }
+			// Validación de contraseña
+			const hasUppercase = typeof password === 'string' && /[A-Z]/.test(password);
+			const hasNumber = typeof password === 'string' && /\d/.test(password);
+			const hasSpecial = typeof password === 'string' && /[^A-Za-z0-9]/.test(password);
 
-      const existing = await UserModel.findOne({ email });
+			if (!password || !hasUppercase || !hasNumber || !hasSpecial) {
+				return res.status(400).json({
+					message:
+						'Password must include at least one uppercase letter, one number, and one special character',
+				});
+			}
 
-      if (existing) {
-        return res
-          .status(400)
-          .json({ message: "This email is already in use" });
-      }
+			// Email único
+			const existing = await UserModel.findOne({ email });
+			if (existing) {
+				return res.status(400).json({ message: 'This email is already in use' });
+			}
 
-      const hashedPass = await hash(password, 10);
+			const hashedPass = await hash(password, 10);
 
-      // Resolver rol por defecto de forma segura:
-      // 1) Usar env.defaultUserRoleId si existe
-      // 2) Si no, buscar por nombre ('Usuario' o 'Cliente')
-      // 3) Si no se encuentra, retornar error controlado
-      let roleId: string | undefined = env.defaultUserRoleId;
-      if (!roleId) {
-        let fallbackRole = await RoleModel.findOne({ name: { $in: ['Usuario', 'Cliente'] } }).select('_id');
-        if (!fallbackRole) {
-          await RoleModel.create({ name: 'Usuario', description: 'Usuario estándar' });
-          fallbackRole = await RoleModel.findOne({ name: 'Usuario' }).select('_id');
-        }
-        roleId = String((fallbackRole as any)._id);
-      }
-      const roleIdResolved: string = roleId;
+			// 🔥 ASIGNACIÓN FIJA DEL ROL
+			const DEFAULT_ROLE_ID = '693784c6753b94da92239f4f';
 
-      const userData = {
-        name,
-        email,
-        password: hashedPass,
-        role: roleIdResolved,
-      };
+			const newUser = await UserModel.create({
+				name,
+				email,
+				password: hashedPass,
+				role: DEFAULT_ROLE_ID,
+			});
 
-      const newUser = await UserModel.create(userData);
+			const payload: any = {
+				id: newUser._id,
+				email: newUser.email,
+				address: newUser.address,
+			};
 
-      res.json({ message: "User registered successfully" });
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({ error: "Error during register" });
-    }
-  },
-  update: async (req: Request, res: Response) => {
-    try {
-      const userId = req.params.id;
-      const { password, role, email, ...rest } = req.body ?? {};
+			const token = generateToken(payload);
 
-      // Este endpoint NO permite cambiar la contraseña
-      if (password != null) {
-        return res.status(400).json({ message: "Password cannot be changed via this endpoint" });
-      }
+			res.cookie('token', token, {
+				httpOnly: true,
+				secure: env.nodeEnv === 'production',
+				sameSite: env.nodeEnv === 'production' ? 'none' : 'lax',
+				maxAge: 1000 * 60 * 60 * 2,
+			});
 
-      // Validar unicidad de email si se actualiza
-      if (email != null) {
-        const existing = await UserModel.findOne({ email, _id: { $ne: userId } }).select("_id");
-        if (existing) {
-          return res.status(400).json({ message: "This email is already in use" });
-        }
-      }
+			return res.json({ message: 'User registered successfully' });
+		} catch (err) {
+			console.log(err);
+			return res.status(500).json({ error: 'Error during register' });
+		}
+	},
 
-      // Construir objeto de actualización permitido
-      const updateDoc: any = { ...rest };
-      if (email != null) updateDoc.email = email;
+	update: async (req: Request, res: Response) => {
+		try {
+			const userId = req.params.id;
+			const { password, role, email, ...rest } = req.body ?? {};
 
-      // Permitir cambio de rol (admin ya está controlado por permisos en la ruta)
-      if (role != null) {
-        const roleExists = await RoleModel.findById(role).select("_id");
-        if (!roleExists) {
-          return res.status(400).json({ message: "Invalid role id" });
-        }
-        updateDoc.role = role;
-      }
+			// Este endpoint NO permite cambiar la contraseña
+			if (password != null) {
+				return res
+					.status(400)
+					.json({ message: 'Password cannot be changed via this endpoint' });
+			}
 
-      const updated = await UserModel.findByIdAndUpdate(userId, updateDoc, { new: true })
-        .select("-password -__v")
-        .populate({ path: "role", select: "name description" });
-      if (!updated) return res.status(404).json({ message: "Not found" });
-      return res.json(updated);
-    } catch (err) {
-      return res.status(500).json({ error: "Error updating user" });
-    }
-  },
+			// Validar unicidad de email si se actualiza
+			if (email != null) {
+				const existing = await UserModel.findOne({ email, _id: { $ne: userId } }).select(
+					'_id'
+				);
+				if (existing) {
+					return res.status(400).json({ message: 'This email is already in use' });
+				}
+			}
+
+			// Construir objeto de actualización permitido
+			const updateDoc: any = { ...rest };
+			if (email != null) updateDoc.email = email;
+
+			// Permitir cambio de rol (admin ya está controlado por permisos en la ruta)
+			if (role != null) {
+				const roleExists = await RoleModel.findById(role).select('_id');
+				if (!roleExists) {
+					return res.status(400).json({ message: 'Invalid role id' });
+				}
+				updateDoc.role = role;
+			}
+
+			const imageUrl = req.file?.path || null;
+			if (imageUrl) updateDoc.profile_picture = imageUrl;
+
+			const updated = await UserModel.findByIdAndUpdate(userId, updateDoc, { new: true })
+				.select('-password -__v')
+				.populate({ path: 'role', select: 'name description' });
+			if (!updated) return res.status(404).json({ message: 'Not found' });
+			return res.json(updated);
+		} catch (err) {
+			return res.status(500).json({ error: 'Error updating user' });
+		}
+	},
 };

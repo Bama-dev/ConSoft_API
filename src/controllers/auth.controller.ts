@@ -6,18 +6,17 @@ import { env } from '../config/env';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { OAuth2Client } from 'google-auth-library';
 import crypto from 'crypto';
-import path from 'path';
 
 export const AuthController = {
 	login: async (req: Request, res: Response) => {
 		try {
 			const { email, password } = req.body;
 			const user = await UserModel.findOne({ email }).populate({
-				path: "role",
+				path: 'role',
 				populate: {
-					path: "permissions",
-					model: "Permiso"
-				}
+					path: 'permissions',
+					model: 'Permiso',
+				},
 			});
 
 			if (!user) {
@@ -113,5 +112,19 @@ export const AuthController = {
 		}
 
 		res.status(200).json(req.user);
+	},
+
+	profile: async (req: AuthRequest, res: Response) => {
+		if (!req.user) {
+			return res.status(401).json({ message: 'Unauthorized' });
+		}
+		const userId = req.user.id;
+		const userInfo = await UserModel.findOne({ _id: userId });
+		if (!userInfo) {
+			return res.status(404).json({ ok: false, message: 'User not found' });
+		}
+
+		const { password, favorites, registeredAt, role, ...safeUser } = userInfo.toObject();
+		res.status(200).json({ ok: true, user: safeUser });
 	},
 };
