@@ -14,7 +14,8 @@ Body:
   "status": "en_proceso",
   "address": "Calle 123 #45-67, Ciudad",
   "items": [
-    { "id_servicio": "<serviceId>", "detalles": "Texto", "valor": 120000 }
+    { "tipo": "servicio", "id_servicio": "<serviceId>", "detalles": "Texto", "cantidad": 1, "valor": 120000 },
+    { "tipo": "producto", "id_producto": "<productId>", "detalles": "Producto adicional", "cantidad": 2, "valor": 35000 }
   ],
   "payments": []
 }
@@ -22,11 +23,19 @@ Body:
 Este pedido quedará visible para ese usuario en `GET /api/orders/mine` (web y móvil) al iniciar sesión.
 
 ### POST `/api/orders/mine` — Crear pedido para el usuario autenticado
-Body:
+Content-Type: `multipart/form-data`
+
+Campos:
+- `items` (string JSON): arreglo de ítems con soporte de productos y servicios
+- `address` (texto)
+- `product_images` (opcional, múltiples archivos): imágenes relacionadas a los productos del pedido
+
+Ejemplo de `items`:
 ```json
 {
   "items": [
-    { "id_servicio": "<serviceId>", "detalles": "Texto", "valor": 120000 }
+    { "tipo": "servicio", "id_servicio": "<serviceId>", "detalles": "Texto", "cantidad": 1, "valor": 120000 },
+    { "tipo": "producto", "id_producto": "<productId>", "detalles": "Producto adicional", "cantidad": 2, "valor": 35000 }
   ],
   "address": "Calle 123 #45-67, Ciudad"
 }
@@ -34,7 +43,8 @@ Body:
 Notas:
 - Asigna automáticamente el `user` con el `id` del usuario autenticado.
 - `status` se inicializa en `"en_proceso"` y `startedAt` en la fecha actual.
-- Respuesta: `201 { "ok": true, "order": { ... } }` con `user` e `items.id_servicio` populados.
+- Puedes adjuntar imágenes con el campo `product_images` (múltiples). Se guardan como `attachments` del pedido con `type = "product_image"`.
+- Respuesta: `201 { "ok": true, "order": { ... } }` con `user`, `items.id_servicio` e `items.id_producto` populados.
 
 ### GET `/api/orders/mine` — Listar pedidos del usuario autenticado
 Respuesta:
@@ -46,7 +56,13 @@ Respuesta:
       "_id": "...",
       "user": { "_id": "...", "name": "...", "email": "..." },
       "status": "en_proceso",
-      "items": [{ "id": "...", "id_servicio": { "_id": "...", "name": "..." }, "detalles": "...", "valor": 120000 }],
+      "items": [
+        { "id": "...", "tipo": "servicio", "id_servicio": { "_id": "...", "name": "..." }, "detalles": "...", "cantidad": 1, "valor": 120000 },
+        { "id": "...", "tipo": "producto", "id_producto": { "_id": "...", "name": "..." }, "detalles": "Producto adicional", "cantidad": 2, "valor": 35000 }
+      ],
+      "attachments": [
+        { "url": "https://res.cloudinary.com/.../image/upload/...", "type": "product_image", "uploadedBy": "...", "uploadedAt": "..." }
+      ],
       "total": 120000,
       "paid": 0,
       "restante": 120000,

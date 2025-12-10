@@ -13,7 +13,8 @@ export const OrderController = {
 			const order = await OrderModel.findById(req.params.id)
 				.populate('user', '-password -__v ')
 				.populate('payments')
-				.populate('items.id_servicio');
+				.populate('items.id_servicio')
+        .populate('items.id_producto');
 			if (!order) return res.status(404).json({ message: 'Not found' });
 			const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
 			const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
@@ -32,11 +33,27 @@ export const OrderController = {
       if (!Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ message: 'items is required and must be a non-empty array' });
       }
-      const normalizedItems = items.map((it: any) => ({
-        id_servicio: it.id_servicio,
-        detalles: it.detalles,
-        valor: typeof it.valor === 'number' ? it.valor : undefined,
-      }));
+      const normalizedItems = items.map((it: any) => {
+        const tipo = it.tipo || (it.id_producto ? 'producto' : 'servicio');
+        const item: any = { tipo };
+        if (tipo === 'producto' && it.id_producto) item.id_producto = it.id_producto;
+        if (tipo === 'servicio' && it.id_servicio) item.id_servicio = it.id_servicio;
+        if (it.detalles != null) item.detalles = it.detalles;
+        if (it.cantidad != null) {
+          const qty = Number(it.cantidad);
+          item.cantidad = Number.isFinite(qty) && qty > 0 ? qty : 1;
+        }
+        if (typeof it.valor === 'number') item.valor = it.valor;
+        return item;
+      });
+      const files = ((req as any).files as any[]) ?? [];
+      const attachments =
+        files.map((f) => ({
+          url: f?.path || f?.filename,
+          type: 'product_image',
+          uploadedBy: userId,
+          uploadedAt: new Date(),
+        })) ?? [];
       const order = await OrderModel.create({
         user: userId,
         status: 'en_proceso',
@@ -44,11 +61,12 @@ export const OrderController = {
         startedAt: new Date(),
         items: normalizedItems,
         payments: [],
-        attachments: [],
+        attachments,
       } as any);
       const populated = await order
         .populate('user', 'name email')
-        .then((o) => o.populate('items.id_servicio'));
+        .then((o) => o.populate('items.id_servicio'))
+        .then((o) => o.populate('items.id_producto'));
       return res.status(201).json({ ok: true, order: populated });
     } catch (error) {
       return res.status(500).json({ error: 'Error creating order' });
@@ -59,7 +77,8 @@ export const OrderController = {
 			const orders = await OrderModel.find()
 				.populate('user', '-password -__v ')
 				.populate('payments')
-				.populate('items.id_servicio');
+				.populate('items.id_servicio')
+        .populate('items.id_producto');
 
       const result = orders
 				.map((order) => {
@@ -90,6 +109,7 @@ export const OrderController = {
         .populate('user', '-password -__v ')
         .populate('payments')
         .populate('items.id_servicio')
+        .populate('items.id_producto')
         .sort({ startedAt: -1 });
 
       const result = orders.map((order) => {

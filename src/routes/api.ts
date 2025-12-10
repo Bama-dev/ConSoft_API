@@ -77,7 +77,7 @@ mountCrud('visits', VisitController);
 // Pedidos del usuario autenticado (sin necesidad de permiso de admin)
 router.get('/orders/mine', OrderController.listMine);
 // crear/consultar pedidos del usuario autenticado sin permisos
-if ((OrderController as any).createForMe) router.post('/orders/mine', (OrderController as any).createForMe);
+if ((OrderController as any).createForMe) router.post('/orders/mine', upload.array('product_images', 10), (OrderController as any).createForMe);
 if ((OrderController as any).listMine) router.get('/orders/mine', (OrderController as any).listMine);
 mountCrud('orders', OrderController);
 mountCrud('payments', PaymentController);
