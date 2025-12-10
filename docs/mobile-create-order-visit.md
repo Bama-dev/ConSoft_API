@@ -4,6 +4,23 @@ Requieren sesión (cookie httpOnly `token`). No necesitan permisos de admin.
 
 ## Pedidos (Orders)
 
+### (Admin) POST `/api/orders` — Crear pedido para un usuario específico
+Requiere permisos `orders.create`. Úsalo cuando un administrador/asesor crea el pedido para un cliente.
+
+Body:
+```json
+{
+  "user": "<userId>",
+  "status": "en_proceso",
+  "address": "Calle 123 #45-67, Ciudad",
+  "items": [
+    { "id_servicio": "<serviceId>", "detalles": "Texto", "valor": 120000 }
+  ],
+  "payments": []
+}
+```
+Este pedido quedará visible para ese usuario en `GET /api/orders/mine` (web y móvil) al iniciar sesión.
+
 ### POST `/api/orders/mine` — Crear pedido para el usuario autenticado
 Body:
 ```json
@@ -41,6 +58,21 @@ Respuesta:
 
 ## Visitas (Visits)
 
+### (Admin) POST `/api/visits` — Crear visita para un usuario específico
+Requiere permisos `visits.create`. Úsalo cuando un administrador agenda la visita para un cliente.
+
+Body:
+```json
+{
+  "user": "<userId>",
+  "visitDate": "2025-12-31T10:00:00.000Z",
+  "address": "Calle 123 #45-67, Ciudad",
+  "status": "pendiente",
+  "services": ["<serviceId1>", "serviceId2"]
+}
+```
+Esta visita quedará visible para ese usuario en `GET /api/visits/mine` (web y móvil) al iniciar sesión.
+
 ### POST `/api/visits/mine` — Crear visita para el usuario autenticado
 Body:
 ```json
@@ -77,5 +109,5 @@ Respuesta:
 ## Consideraciones
 - Todos los endpoints anteriores requieren autenticación por cookie httpOnly (`/api/auth/login` antes).
 - Si tu app móvil no comparte cookies automáticamente, usa un wrapper que incluya `credentials: 'include'` en cada request.
-- Para producción, asegúrate de exponer el mismo dominio o configurar correctamente `FRINTE
+- Para producción, asegúrate de exponer el mismo dominio o configurar correctamente `FRONTEND_ORIGINS` y usar HTTPS para `SameSite=None; Secure`.
 
