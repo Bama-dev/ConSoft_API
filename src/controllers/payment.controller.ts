@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { OrderModel } from '../models/order.model';
 import { createCrudController } from './crud.controller';
+import { extractTextFromImage, parseAmountFromText } from '../utils/ocr';
 
 const base = createCrudController(OrderModel);
 
@@ -94,6 +95,48 @@ export const PaymentController = {
 
 			const payment = order.payments[order.payments.length - 1];
 			return res.status(201).json(payment);
+		} catch (error) {
+			console.error(error);
+			return res.status(500).json({ message: 'Internal server error' });
+		}
+	},
+
+	// Crear pago a partir de imagen con OCR
+	createFromReceiptOcr: async (req: Request, res: Response) => {
+		try {
+			const orderId = req.params.id || req.body.orderId;
+			const file: any = (req as any).file;
+			if (!orderId) return res.status(400).json({ message: 'orderId is required (path or body)' });
+			if (!file?.path) return res.status(400).json({ message: 'payment_image file is required' });
+
+			const order = await OrderModel.findById(orderId);
+			if (!order) return res.status(404).json({ message: 'Order not found' });
+
+			// Extraer texto y parsear monto
+			const text = await extractTextFromImage(file.path);
+			const parsedAmount = parseAmountFromText(text || '');
+			if (parsedAmount == null) {
+				return res.status(422).json({ message: 'No se pudo detectar un monto válido en el comprobante', ocrText: text });
+			}
+
+			// Permitir override opcional desde el body
+			const amount = Number(req.body?.amount ?? parsedAmount);
+			const paidAt = req.body?.paidAt ? new Date(req.body.paidAt) : new Date();
+			const method = String(req.body?.method ?? 'comprobante');
+			const status = String(req.body?.status ?? 'pendiente');
+
+			order.payments.push({
+				amount,
+				paidAt,
+				method,
+				status,
+				receiptUrl: file.path,
+				ocrText: text,
+			} as any);
+			await order.save();
+
+			const payment = order.payments[order.payments.length - 1];
+			return res.status(201).json({ ok: true, payment, detectedAmount: parsedAmount });
 		} catch (error) {
 			console.error(error);
 			return res.status(500).json({ message: 'Internal server error' });

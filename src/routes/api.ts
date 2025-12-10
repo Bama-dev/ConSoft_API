@@ -81,6 +81,8 @@ if ((OrderController as any).createForMe) router.post('/orders/mine', upload.arr
 if ((OrderController as any).listMine) router.get('/orders/mine', (OrderController as any).listMine);
 mountCrud('orders', OrderController);
 mountCrud('payments', PaymentController);
+// Pago por OCR de comprobante
+router.post('/orders/:id/payments/ocr', upload.single('payment_image'), PaymentController.createFromReceiptOcr);
 mountCrud('sales', SaleController);
 mountCrud('permissions', PermissionController);
 

@@ -6,6 +6,9 @@ const PaymentSchema = new Schema(
     paidAt: { type: Date, required: true },
     method: { type: String, required: true, trim: true },
     status: { type: String, required: true, trim: true },
+    // Campos opcionales para trazabilidad del comprobante
+    receiptUrl: { type: String, trim: true },
+    ocrText: { type: String, trim: true },
   },
 );
 
