@@ -17,7 +17,11 @@ export const OrderController = {
         .populate('items.id_producto');
 			if (!order) return res.status(404).json({ message: 'Not found' });
 			const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
-			const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+      const APPROVED = new Set(['aprobado', 'confirmado']);
+			const paid = order.payments.reduce((sum, p) => {
+        const status = String(p.status || '').toLowerCase();
+        return APPROVED.has(status) ? sum + (p.amount || 0) : sum;
+      }, 0);
 			const restante = total - paid;
 			return res.json({ ...order.toObject(), total, paid, restante });
 		} catch (error) {
@@ -83,7 +87,11 @@ export const OrderController = {
       const result = orders
 				.map((order) => {
 					const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
-					const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+          const APPROVED = new Set(['aprobado', 'confirmado']);
+					const paid = order.payments.reduce((sum, p) => {
+            const status = String(p.status || '').toLowerCase();
+            return APPROVED.has(status) ? sum + (p.amount || 0) : sum;
+          }, 0);
 					const restante = total - paid;
 
 					return {
@@ -114,7 +122,11 @@ export const OrderController = {
 
       const result = orders.map((order) => {
         const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
-        const paid = order.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const APPROVED = new Set(['aprobado', 'confirmado']);
+        const paid = order.payments.reduce((sum, p) => {
+          const status = String(p.status || '').toLowerCase();
+          return APPROVED.has(status) ? sum + (p.amount || 0) : sum;
+        }, 0);
         const restante = total - paid;
         return {
           ...order.toObject(),

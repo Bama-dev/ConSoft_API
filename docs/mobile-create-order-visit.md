@@ -126,4 +126,5 @@ Respuesta:
 - Todos los endpoints anteriores requieren autenticación por cookie httpOnly (`/api/auth/login` antes).
 - Si tu app móvil no comparte cookies automáticamente, usa un wrapper que incluya `credentials: 'include'` en cada request.
 - Para producción, asegúrate de exponer el mismo dominio o configurar correctamente `FRONTEND_ORIGINS` y usar HTTPS para `SameSite=None; Secure`.
+- El cálculo de `paid` y `restante` usa únicamente pagos con estado `aprobado` o `confirmado`. Pagos `pendiente` no descuentan hasta ser aprobados.
 

@@ -57,8 +57,12 @@ export const PaymentController = {
 
 			const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
 			let acumulado = 0;
+      const APPROVED = new Set(['aprobado', 'confirmado']);
 			const pagosConRestante = order.payments.map((p) => {
-				acumulado += p.amount || 0;
+        const status = String(p.status || '').toLowerCase();
+				if (APPROVED.has(status)) {
+          acumulado += p.amount || 0;
+        }
 				return {
 					...p.toObject(),
 					restante: total - acumulado,
