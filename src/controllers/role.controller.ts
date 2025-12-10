@@ -25,7 +25,7 @@ export const RoleController = {
 				return res.status(400).json({ message: 'name is required' });
 			}
 			if (permissions != null && !Array.isArray(permissions)) {
-				return res.status(400).json({ message: 'permissions must be an array of ids' });
+				return res.status(400).json({ message: 'must permissions be an array of ids' });
 			}
 			const cleaned = Array.isArray(permissions)
 				? Array.from(
