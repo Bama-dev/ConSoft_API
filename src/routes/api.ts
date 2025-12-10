@@ -37,6 +37,8 @@ router.post('/auth/profile', verifyToken, AuthController.profile);
 // Recuperación de contraseña (público)
 router.post('/auth/forgot-password', AuthController.forgotPassword);
 router.post('/auth/reset-password', AuthController.resetPassword);
+// Registro público con cookie
+router.post('/auth/register', AuthController.register);
 // Registro público de usuarios (para permitir sign-up y tests)
 router.post('/users', UserController.create);
 
