@@ -55,6 +55,9 @@ if (ServiceController.get) router.get('/services/:id', ServiceController.get);
 router.use(verifyToken);
 // Cambio de contraseña (autenticado)
 router.post('/auth/change-password', AuthController.changePassword);
+// Pedidos/Visitas del usuario autenticado (móvil)
+if ((VisitController as any).createForMe) router.post('/visits/mine', (VisitController as any).createForMe);
+if ((VisitController as any).listMine) router.get('/visits/mine', (VisitController as any).listMine);
 if (ProductController.create)
 	router.post('/products', upload.single('image'), ProductController.create);
 if (ServiceController.create)
@@ -69,6 +72,9 @@ mountCrud('services', ServiceController);
 mountCrud('visits', VisitController);
 // Pedidos del usuario autenticado (sin necesidad de permiso de admin)
 router.get('/orders/mine', OrderController.listMine);
+// crear/consultar pedidos del usuario autenticado sin permisos
+if ((OrderController as any).createForMe) router.post('/orders/mine', (OrderController as any).createForMe);
+if ((OrderController as any).listMine) router.get('/orders/mine', (OrderController as any).listMine);
 mountCrud('orders', OrderController);
 mountCrud('payments', PaymentController);
 mountCrud('sales', SaleController);

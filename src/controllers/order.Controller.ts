@@ -23,6 +23,37 @@ export const OrderController = {
 			return res.status(500).json({ message: 'Error retrieving order' });
 		}
 	},
+  // Crear pedido para el usuario autenticado (móvil)
+  createForMe: async (req: AuthRequest, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+      const { items, address } = req.body ?? {};
+      if (!Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ message: 'items is required and must be a non-empty array' });
+      }
+      const normalizedItems = items.map((it: any) => ({
+        id_servicio: it.id_servicio,
+        detalles: it.detalles,
+        valor: typeof it.valor === 'number' ? it.valor : undefined,
+      }));
+      const order = await OrderModel.create({
+        user: userId,
+        status: 'en_proceso',
+        address,
+        startedAt: new Date(),
+        items: normalizedItems,
+        payments: [],
+        attachments: [],
+      } as any);
+      const populated = await order
+        .populate('user', 'name email')
+        .then((o) => o.populate('items.id_servicio'));
+      return res.status(201).json({ ok: true, order: populated });
+    } catch (error) {
+      return res.status(500).json({ error: 'Error creating order' });
+    }
+  },
 	list: async (req: Request, res: Response) => {
 		try {
 			const orders = await OrderModel.find()
