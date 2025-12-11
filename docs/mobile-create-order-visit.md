@@ -57,8 +57,8 @@ Respuesta:
       "user": { "_id": "...", "name": "...", "email": "..." },
       "status": "en_proceso",
       "items": [
-        { "id": "...", "tipo": "servicio", "id_servicio": { "_id": "...", "name": "..." }, "detalles": "...", "cantidad": 1, "valor": 120000 },
-        { "id": "...", "tipo": "producto", "id_producto": { "_id": "...", "name": "..." }, "detalles": "Producto adicional", "cantidad": 2, "valor": 35000 }
+        { "id": "...", "tipo": "servicio", "id_servicio": { "_id": "...", "name": "..." }, "imageUrl": "https://...", "detalles": "...", "cantidad": 1, "valor": 120000 },
+        { "id": "...", "tipo": "producto", "id_producto": { "_id": "...", "name": "..." }, "imageUrl": "https://...", "detalles": "Producto adicional", "cantidad": 2, "valor": 35000 }
       ],
       "attachments": [
         { "url": "https://res.cloudinary.com/.../image/upload/...", "type": "product_image", "uploadedBy": "...", "uploadedAt": "..." }

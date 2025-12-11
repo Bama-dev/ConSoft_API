@@ -38,6 +38,8 @@ const OrderSchema = new Schema(
         // Referencias opcionales según el tipo
         id_producto: { type: Types.ObjectId, ref: 'Producto' },
         id_servicio: { type: Types.ObjectId, ref: 'Servicio' },
+				// Snapshot de imagen del producto/servicio al momento de crear el pedido
+				imageUrl: { type: String, trim: true },
         // Datos complementarios
         detalles: { type: String },
         cantidad: { type: Number, default: 1 },
