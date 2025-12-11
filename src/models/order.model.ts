@@ -34,7 +34,7 @@ const OrderSchema = new Schema(
     items: [
       {
         // Identifica si el ítem corresponde a un producto o servicio
-        tipo: { type: String, enum: ['producto', 'servicio'], required: true, trim: true },
+        tipo: { type: String, enum: ['producto', 'servicio'], required: true, trim: true, default: "servicio" },
         // Referencias opcionales según el tipo
         id_producto: { type: Types.ObjectId, ref: 'Producto' },
         id_servicio: { type: Types.ObjectId, ref: 'Servicio' },
