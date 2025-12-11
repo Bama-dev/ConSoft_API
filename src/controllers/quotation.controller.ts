@@ -257,7 +257,8 @@ export const QuotationController = {
 						return {
 							detalles: item.adminNotes ?? 'Sin notas del administrador',
 							valor: subtotal, // aquí guardamos subtotal dinámico
-							id_servicio: '68d47cf4da9d98534c933ff9', // o el id que corresponda
+							id_servicio: '6935c21d5a32d156edbfe527', // Fabricacion
+							tipo: "producto"
 						};
 					});
 
