@@ -57,12 +57,12 @@ export const PaymentController = {
 
 			const total = order.items.reduce((sum, item) => sum + (item.valor || 0), 0);
 			let acumulado = 0;
-      const APPROVED = new Set(['aprobado', 'confirmado']);
+			const APPROVED = new Set(['aprobado', 'confirmado']);
 			const pagosConRestante = order.payments.map((p) => {
-        const status = String(p.status || '').toLowerCase();
+				const status = String(p.status || '').toLowerCase();
 				if (APPROVED.has(status)) {
-          acumulado += p.amount || 0;
-        }
+					acumulado += p.amount || 0;
+				}
 				return {
 					...p.toObject(),
 					restante: total - acumulado,
@@ -110,8 +110,10 @@ export const PaymentController = {
 		try {
 			const orderId = req.params.id || req.body.orderId;
 			const file: any = (req as any).file;
-			if (!orderId) return res.status(400).json({ message: 'orderId is required (path or body)' });
-			if (!file?.path) return res.status(400).json({ message: 'payment_image file is required' });
+			if (!orderId)
+				return res.status(400).json({ message: 'orderId is required (path or body)' });
+			if (!file?.path)
+				return res.status(400).json({ message: 'payment_image file is required' });
 
 			const order = await OrderModel.findById(orderId);
 			if (!order) return res.status(404).json({ message: 'Order not found' });
@@ -120,7 +122,12 @@ export const PaymentController = {
 			const text = await extractTextFromImage(file.path);
 			const parsedAmount = parseAmountFromText(text || '');
 			if (parsedAmount == null) {
-				return res.status(422).json({ message: 'No se pudo detectar un monto válido en el comprobante', ocrText: text });
+				return res
+					.status(422)
+					.json({
+						message: 'No se pudo detectar un monto válido en el comprobante',
+						ocrText: text,
+					});
 			}
 
 			// Permitir override opcional desde el body
