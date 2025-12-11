@@ -59,6 +59,9 @@ if (ServiceController.create)
 	router.post('/services', upload.single('image'), ServiceController.create);
 if (UserController.update) router.put('/users/:id', upload.single('profile_picture'), UserController.update);
 
+//* Obtener pedidos de usuario
+router.get("/orders/mine", verifyToken, OrderController.mine)
+
 mountCrud('roles', RoleController);
 mountCrud('users', UserController);
 mountCrud('categories', CategoryControlleer);
@@ -91,5 +94,7 @@ router.get('/quotations/:quotationId/messages', ChatController.listMessages);
 // (dueño ya pasa por verificación dentro del controlador)
 // Nota: esta línea debe ir DESPUÉS de router.use(verifyToken)
 // pero antes de montar otros middlewares que no apliquen.
+
+
 
 export default router;
