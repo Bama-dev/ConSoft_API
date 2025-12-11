@@ -37,6 +37,8 @@ router.post('/auth/profile', verifyToken, AuthController.profile);
 // Recuperación de contraseña (público)
 router.post('/auth/forgot-password', AuthController.forgotPassword);
 router.post('/auth/reset-password', AuthController.resetPassword);
+// Registro público con cookie
+router.post('/auth/register', AuthController.register);
 // Registro público de usuarios (para permitir sign-up y tests)
 router.post('/users', UserController.create);
 
@@ -53,6 +55,13 @@ if (ServiceController.get) router.get('/services/:id', ServiceController.get);
 router.use(verifyToken);
 // Cambio de contraseña (autenticado)
 router.post('/auth/change-password', AuthController.changePassword);
+// Perfil propio (autenticado)
+if ((UserController as any).me) router.get('/users/me', (UserController as any).me);
+if ((UserController as any).updateMe)
+	router.put('/users/me', upload.single('profile_picture'), (UserController as any).updateMe);
+// Pedidos/Visitas del usuario autenticado (móvil)
+if ((VisitController as any).createForMe) router.post('/visits/mine', (VisitController as any).createForMe);
+if ((VisitController as any).listMine) router.get('/visits/mine', (VisitController as any).listMine);
 if (ProductController.create)
 	router.post('/products', upload.single('image'), ProductController.create);
 if (ServiceController.create)
@@ -68,8 +77,15 @@ mountCrud('categories', CategoryControlleer);
 mountCrud('products', ProductController);
 mountCrud('services', ServiceController);
 mountCrud('visits', VisitController);
+// Pedidos del usuario autenticado (sin necesidad de permiso de admin)
+router.get('/orders/mine', OrderController.listMine);
+// crear/consultar pedidos del usuario autenticado sin permisos
+if ((OrderController as any).createForMe) router.post('/orders/mine', upload.array('product_images', 10), (OrderController as any).createForMe);
+if ((OrderController as any).listMine) router.get('/orders/mine', (OrderController as any).listMine);
 mountCrud('orders', OrderController);
 mountCrud('payments', PaymentController);
+// Pago por OCR de comprobante
+router.post('/orders/:id/payments/ocr', upload.single('payment_image'), PaymentController.createFromReceiptOcr);
 mountCrud('sales', SaleController);
 mountCrud('permissions', PermissionController);
 

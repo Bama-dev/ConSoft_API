@@ -6,6 +6,9 @@ const PaymentSchema = new Schema(
     paidAt: { type: Date, required: true },
     method: { type: String, required: true, trim: true },
     status: { type: String, required: true, trim: true },
+    // Campos opcionales para trazabilidad del comprobante
+    receiptUrl: { type: String, trim: true },
+    ocrText: { type: String, trim: true },
   },
 );
 
@@ -29,12 +32,18 @@ const OrderSchema = new Schema(
     startedAt: { type: Date },
     deliveredAt: { type: Date },
     items: [
-  {
-    id_servicio: { type: Types.ObjectId, ref: 'Servicio' },
-    detalles: { type: String },
-    valor: { type: Number }
-  }
-],
+      {
+        // Identifica si el ítem corresponde a un producto o servicio
+        tipo: { type: String, enum: ['producto', 'servicio'], required: true, trim: true },
+        // Referencias opcionales según el tipo
+        id_producto: { type: Types.ObjectId, ref: 'Producto' },
+        id_servicio: { type: Types.ObjectId, ref: 'Servicio' },
+        // Datos complementarios
+        detalles: { type: String },
+        cantidad: { type: Number, default: 1 },
+        valor: { type: Number },
+      }
+    ],
     payments: { type: [PaymentSchema], default: [] },
     attachments: { type: [AttachmentSchema], default: [] },
   },
