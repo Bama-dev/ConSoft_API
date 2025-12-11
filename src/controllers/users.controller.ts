@@ -126,4 +126,26 @@ export const UserController = {
 			return res.status(500).json({ error: 'Error updating user' });
 		}
 	},
+
+	get: async (req: Request, res: Response) => {
+		try {
+			const { id } = req.params; // ID del usuario desde la URL
+
+			if (!id) {
+				return res.status(400).json({ message: 'El ID del usuario es obligatorio' });
+			}
+
+			// Buscar usuario por id y popular favorites
+			const user = await UserModel.findById(id).populate('favorites');
+
+			if (!user) {
+				return res.status(404).json({ message: 'Usuario no encontrado' });
+			}
+
+			return res.status(200).json({ data: user });
+		} catch (error) {
+			console.error('Error en getUserById:', error);
+			return res.status(500).json({ message: 'Error interno del servidor' });
+		}
+	},
 };
