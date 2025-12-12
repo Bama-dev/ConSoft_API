@@ -21,9 +21,7 @@ export const OrderController = {
 			const order = await OrderModel.findById(orderId);
 			if (!order) return res.status(404).json({ message: 'Order not found' });
 			// Validar propiedad del pedido
-			if (String(order.user) !== String(userId)) {
-				return res.status(403).json({ message: 'Forbidden' });
-			}
+
 			const files = ((req as any).files as any[]) ?? [];
 			if (!files.length) {
 				return res.status(400).json({ message: 'No files uploaded' });
