@@ -18,8 +18,9 @@ const AttachmentSchema = new Schema(
     type: { type: String, required: true, trim: true },
     uploadedBy: { type: Types.ObjectId, ref: 'User', required: true },
     uploadedAt: { type: Date, default: () => new Date() },
+    item_id: { type: Types.ObjectId, required: true }, 
   },
-  { _id: false }
+  { _id: true }
 );
 
 
