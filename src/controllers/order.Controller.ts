@@ -13,6 +13,9 @@ export const OrderController = {
 	addAttachments: async (req: AuthRequest, res: Response) => {
 		try {
 			const userId = req.user?.id;
+			const itemId = req.body.item_id;
+
+
 			if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 			const orderId = req.params.id;
 			const order = await OrderModel.findById(orderId);
@@ -31,7 +34,9 @@ export const OrderController = {
 					type: 'product_image',
 					uploadedBy: userId,
 					uploadedAt: new Date(),
+					item_id: itemId,
 				})) ?? [];
+				
 			order.attachments.push(...(newAttachments as any));
 			await order.save();
 			const populated = await order
