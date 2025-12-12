@@ -67,6 +67,9 @@ if (ProductController.create)
 if (ServiceController.create)
 	router.post('/services', upload.single('image'), ServiceController.create);
 if (UserController.update) router.put('/users/:id', upload.single('profile_picture'), UserController.update);
+// Adjuntar imágenes a un pedido existente (propietario)
+if ((OrderController as any).addAttachments)
+	router.post('/orders/:id/attachments', upload.array('product_images', 10), (OrderController as any).addAttachments);
 
 mountCrud('roles', RoleController);
 mountCrud('users', UserController);

@@ -9,6 +9,40 @@ const base = createCrudController(OrderModel);
 
 export const OrderController = {
 	...base,
+	// Subir imágenes al pedido (adjuntos a nivel pedido)
+	addAttachments: async (req: AuthRequest, res: Response) => {
+		try {
+			const userId = req.user?.id;
+			if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+			const orderId = req.params.id;
+			const order = await OrderModel.findById(orderId);
+			if (!order) return res.status(404).json({ message: 'Order not found' });
+			// Validar propiedad del pedido
+			if (String(order.user) !== String(userId)) {
+				return res.status(403).json({ message: 'Forbidden' });
+			}
+			const files = ((req as any).files as any[]) ?? [];
+			if (!files.length) {
+				return res.status(400).json({ message: 'No files uploaded' });
+			}
+			const newAttachments =
+				files.map((f) => ({
+					url: f?.path || f?.filename,
+					type: 'product_image',
+					uploadedBy: userId,
+					uploadedAt: new Date(),
+				})) ?? [];
+			order.attachments.push(...(newAttachments as any));
+			await order.save();
+			const populated = await order
+				.populate('user', 'name email')
+				.then((o) => o.populate('items.id_servicio'))
+				.then((o) => o.populate('items.id_producto'));
+			return res.status(200).json({ ok: true, order: populated });
+		} catch (error) {
+			return res.status(500).json({ error: 'Error uploading attachments' });
+		}
+	},
 
 	get: async (req: Request, res: Response) => {
 		try {

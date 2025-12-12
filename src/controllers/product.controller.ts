@@ -29,7 +29,7 @@ export const ProductController = {
 				return res.status(400).json({ message: 'category is required' });
 			}
 
-			const imageUrl = req.file?.path || null;
+			const imageUrl = (req as any).file?.path || null;
 			// No hay CategoryModel aquí; validación de existencia mínima se omite para evitar dependencia circular
 			const created = await ProductModel.create({
 				name: name.trim(),
