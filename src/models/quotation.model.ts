@@ -17,8 +17,8 @@ const QuotationSchema = new Schema(
 		user: { type: Types.ObjectId, ref: 'User', required: true },
 		status: {
 			type: String,
-			enum: ['carrito', 'solicitada', 'en_proceso', 'cotizada', 'cerrada'],
-			default: 'carrito',
+			enum: ['Carrito', 'Solicitada', 'En proceso', 'Cotizada', 'Cerrada'],
+			default: 'Carrito',
 		},
 		items: { type: [QuotationItemSchema], default: [] },
 		totalEstimate: { type: Number }, // suma de todos los items.total

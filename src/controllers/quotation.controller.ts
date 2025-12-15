@@ -44,7 +44,7 @@ export const QuotationController = {
 			// Operación atómica: crea si no existe, o devuelve el existente
 			const cart = await QuotationModel.findOneAndUpdate(
 				{ user: userId, status: 'carrito' },
-				{ $setOnInsert: { user: userId, status: 'carrito', items: [] } },
+				{ $setOnInsert: { user: userId, status: 'Carrito', items: [] } },
 				{ new: true, upsert: true }
 			)
 				.populate('items.product')
@@ -71,7 +71,7 @@ export const QuotationController = {
 
 			// Operación atómica: push al array si es del usuario y está en 'carrito'
 			const updated = await QuotationModel.findOneAndUpdate(
-				{ _id: quotationId, user: userId, status: 'carrito' },
+				{ _id: quotationId, user: userId, status: 'Carrito' },
 				{
 					$push: {
 						items: {
@@ -141,7 +141,7 @@ export const QuotationController = {
 			const itemId = req.params.itemId;
 
 			const updated = await QuotationModel.findOneAndUpdate(
-				{ _id: quotationId, user: userId, status: 'carrito' },
+				{ _id: quotationId, user: userId, status: 'Carrito' },
 				{ $pull: { items: { _id: itemId } } },
 				{ new: true }
 			)
@@ -167,10 +167,13 @@ export const QuotationController = {
 			if (String(quotation.user) !== String(userId)) {
 				return res.status(403).json({ message: 'Forbidden' });
 			}
+
+			if(quotation.status == "Solicitada") return res.status(400).json({message: "The Quotation has already been requested"})
+
 			if (quotation.items.length === 0) {
 				return res.status(400).json({ message: 'Cart is empty' });
 			}
-			quotation.status = 'solicitada';
+			quotation.status = 'Solicitada';
 			await quotation.save();
 			const populated = await quotation
 				.populate('items.product')
@@ -214,7 +217,7 @@ export const QuotationController = {
 				});
 			}
 
-			quotation.status = 'cotizada';
+			quotation.status = 'Cotizada';
 			await quotation.save();
 
 			// Notificar al usuario por correo
@@ -261,12 +264,12 @@ export const QuotationController = {
 			}
 
 			if (decision === 'accept') {
-				quotation.status = 'en_proceso';
+				quotation.status = 'En proceso';
 
 				// Buscar si ya existe un pedido reciente
 				const existingOrder = await OrderModel.findOne({
 					user: quotation.user as any,
-					status: 'en_proceso',
+					status: 'En proceso',
 					startedAt: { $gte: new Date(Date.now() - 5 * 60 * 1000) }, // últimos 5 minutos
 				});
 
@@ -291,13 +294,13 @@ export const QuotationController = {
 				if (!existingOrder) {
 					await OrderModel.create({
 						user: quotation.user as any,
-						status: 'en_proceso',
+						status: 'En proceso',
 						startedAt: new Date(),
 						items,
 					} as any);
 				}
 			} else {
-				quotation.status = 'cerrada';
+				quotation.status = 'Cerrada';
 			}
 
 			await quotation.save();

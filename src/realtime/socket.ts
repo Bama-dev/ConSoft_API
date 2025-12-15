@@ -122,8 +122,8 @@ export function initSocket(server: HttpServer) {
 					sentAt: msg.sentAt,
 				});
 				// Notificación por correo al cliente (dueño) solo si NO tiene sesión iniciada (no está online en socket)
-				const linkBase = env.frontendOrigins[0] || 'http://localhost:3000';
-				const link = `${linkBase}/cotizaciones/${payload.quotationId}`;
+				const linkBase = env.frontendOrigins[0] || 'http://localhost:3000/client';
+				const link = `${linkBase}/notificaciones/${payload.quotationId}`;
 				const isOwnerSender = access.ownerId && String(access.ownerId) === String(user.id);
 				const ownerOnline = access.ownerId ? isUserOnline(access.ownerId) : false;
 				if (!isOwnerSender && access.ownerEmail && !ownerOnline) {
