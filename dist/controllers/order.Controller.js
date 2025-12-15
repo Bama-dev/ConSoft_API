@@ -18,8 +18,12 @@ exports.OrderController = {
             const order = await order_model_1.OrderModel.findById(orderId);
             if (!order)
                 return res.status(404).json({ message: 'Order not found' });
-            // Validar propiedad del pedido
-            if (String(order.user) !== String(userId)) {
+            // Validar propiedad del pedido o permisos de admin sobre pedidos
+            const isOwner = String(order.user) === String(userId);
+            const rolePermissions = (req.user?.role?.permissions ?? []);
+            const hasOrdersUpdatePermission = Array.isArray(rolePermissions)
+                && rolePermissions.some((p) => p?.module === 'orders' && p?.action === 'update');
+            if (!isOwner && !hasOrdersUpdatePermission) {
                 return res.status(403).json({ message: 'Forbidden' });
             }
             const files = req.files ?? [];
